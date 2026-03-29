@@ -436,6 +436,21 @@
     </div>
 
     <div class="card">
+      <div class="card-label">📱 פלטפורמה</div>
+      <div class="gender-buttons">
+        <button class="gender-btn" onclick="selectPlatform('instagram', this)">
+          <span class="emoji">📸</span> אינסטגרם
+        </button>
+        <button class="gender-btn" onclick="selectPlatform('whatsapp', this)">
+          <span class="emoji">💬</span> וואטסאפ
+        </button>
+        <button class="gender-btn" onclick="selectPlatform('crm', this)">
+          <span class="emoji">📋</span> CRM / ליד
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-label">👤 מגדר פנייה ללקוח</div>
       <div class="gender-buttons">
         <button class="gender-btn" onclick="selectGender('male', this)">
@@ -532,7 +547,13 @@ const GENDER_PROMPTS = {
   neutral: 'השתמש בפנייה ניטרלית ללא מגדר (ניתן, אפשר, מוזמן/ת, ניצור קשר וכו\')',
 };
 
-async function callGroq(text, gender) {
+const PLATFORM_PROMPTS = {
+  instagram: 'הטון צריך להיות חם, עממי וידידותי - כמו שיחה בין חברים. אפשר להשתמש באימוג\'י כשמתאים. קצר וקולע.',
+  whatsapp: 'הטון צריך להיות מקצועי אבל אדיב ונגיש. מובנה וברור, בלי להיות קר מדי.',
+  crm: 'הטון צריך להיות רשמי ומקצועי. ניסוח עסקי, מנומס, מדויק ומובנה.',
+};
+
+async function callGroq(text, gender, platform) {
   const apiKey = getApiKey();
   if (!apiKey) {
     showSetup();
@@ -540,6 +561,7 @@ async function callGroq(text, gender) {
   }
 
   const genderInstruction = GENDER_PROMPTS[gender];
+  const platformInstruction = PLATFORM_PROMPTS[platform];
 
   const prompt = `אתה עורך טקסט מקצועי בעברית עבור שירות לקוחות.
 
@@ -550,14 +572,17 @@ async function callGroq(text, gender) {
 2. שפר ניסוח כשהוא לא ברור או לא מקצועי (למשל: "ניתן עוד הנחה" → "נוכל לתת הנחה נוספת")
 3. ${genderInstruction}
 
+טון לפי פלטפורמה:
+4. ${platformInstruction}
+
 חשוב מאוד - מגדר הנציג/ת:
-4. כשהנציג/ת כותב/ת על עצמו/ה (אני יכולה, אני יכול, בדקתי, שלחתי, אשמח) - אל תשנה את המגדר! זה המגדר האמיתי של הכותב/ת.
+5. כשהנציג/ת כותב/ת על עצמו/ה (אני יכולה, אני יכול, בדקתי, שלחתי, אשמח) - אל תשנה את המגדר! זה המגדר האמיתי של הכותב/ת.
    - אם כתוב "אני יכולה לבדוק" - השאר "אני יכולה לבדוק" (הנציגה היא אישה)
    - אם כתוב "אני יכול לבדוק" - השאר "אני יכול לבדוק" (הנציג הוא גבר)
    - שנה מגדר רק בפנייה ללקוח (אתה/את, מוזמן/מוזמנת, תרשום/תרשמי)
 
-5. שמור על המשמעות והטון המקוריים
-6. החזר רק את הטקסט המתוקן, בלי הסברים ובלי הערות
+6. שמור על המשמעות המקורית
+7. החזר רק את הטקסט המתוקן, בלי הסברים ובלי הערות
 
 הטקסט לתיקון:
 ${text}`;
@@ -604,24 +629,33 @@ ${text}`;
 // ==================== UI ====================
 
 let selectedGender = null;
+let selectedPlatform = null;
+
+function selectPlatform(platform, btn) {
+  selectedPlatform = platform;
+  // Only remove active from platform buttons (first .gender-buttons group)
+  btn.closest('.gender-buttons').querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateBtn();
+}
 
 function selectGender(gender, btn) {
   selectedGender = gender;
-  document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+  btn.closest('.gender-buttons').querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   updateBtn();
 }
 
 function updateBtn() {
   document.getElementById('submitBtn').disabled =
-    !document.getElementById('inputText').value.trim() || !selectedGender;
+    !document.getElementById('inputText').value.trim() || !selectedGender || !selectedPlatform;
 }
 
 document.getElementById('inputText').addEventListener('input', updateBtn);
 
 async function correctText() {
   const text = document.getElementById('inputText').value.trim();
-  if (!text || !selectedGender) return;
+  if (!text || !selectedGender || !selectedPlatform) return;
 
   const btn = document.getElementById('submitBtn');
   const errorEl = document.getElementById('errorMsg');
@@ -631,7 +665,7 @@ async function correctText() {
   document.getElementById('resultCard').classList.remove('visible');
 
   try {
-    const corrected = await callGroq(text, selectedGender);
+    const corrected = await callGroq(text, selectedGender, selectedPlatform);
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -649,6 +683,7 @@ function clearAll() {
   document.getElementById('resultCard').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
   selectedGender = null;
+  selectedPlatform = null;
   document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('inputText').focus();
