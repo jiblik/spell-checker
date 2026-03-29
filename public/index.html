@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מתקן כתיב - שירות לקוחות</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      width: 100%;
+      padding: 24px 0 16px;
+      text-align: center;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .header p { color: #94a3b8; font-size: 14px; font-weight: 300; }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      padding: 24px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid #334155;
+    }
+
+    .card-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      color: #e2e8f0;
+      font-family: 'Heebo', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      resize: vertical;
+      direction: rtl;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { outline: none; border-color: #60a5fa; }
+    textarea::placeholder { color: #475569; }
+
+    .gender-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .gender-btn {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 2px solid #334155;
+      background: #0f172a;
+      color: #94a3b8;
+      font-family: 'Heebo', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .gender-btn .emoji { font-size: 24px; }
+    .gender-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+
+    .gender-btn.active {
+      border-color: #60a5fa;
+      background: rgba(96, 165, 250, 0.1);
+      color: #60a5fa;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-family: 'Heebo', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .submit-btn .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    .submit-btn.loading .spinner { display: block; }
+    .submit-btn.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-card { display: none; }
+    .result-card.visible { display: block; }
+
+    .result-text {
+      width: 100%;
+      min-height: 120px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      color: #e2e8f0;
+      font-family: 'Heebo', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      direction: rtl;
+      white-space: pre-wrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #94a3b8;
+      font-family: 'Heebo', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+    .action-btn.copied { border-color: #22c55e; color: #22c55e; }
+
+    .error-msg {
+      display: none;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #fca5a5;
+      font-size: 14px;
+      text-align: center;
+    }
+    .error-msg.visible { display: block; }
+
+    .shortcut-hint {
+      text-align: center;
+      font-size: 12px;
+      color: #475569;
+      margin-top: -8px;
+    }
+
+    /* API Key setup */
+    .setup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .setup-overlay.hidden { display: none; }
+
+    .setup-card {
+      background: #1e293b;
+      border-radius: 20px;
+      padding: 36px;
+      max-width: 520px;
+      width: 100%;
+      border: 1px solid #334155;
+      text-align: center;
+    }
+
+    .setup-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+    }
+
+    .setup-card .subtitle {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .setup-steps {
+      text-align: right;
+      margin-bottom: 24px;
+    }
+
+    .setup-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      background: rgba(96, 165, 250, 0.15);
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .step-text a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    .step-text a:hover { text-decoration: underline; }
+
+    .key-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      color: #e2e8f0;
+      font-family: 'Heebo', monospace;
+      font-size: 14px;
+      direction: ltr;
+      text-align: left;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .key-input:focus { outline: none; border-color: #60a5fa; }
+    .key-input::placeholder { color: #475569; }
+
+    .setup-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-family: 'Heebo', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .setup-btn:hover { transform: translateY(-1px); }
+    .setup-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .setup-note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* Settings gear */
+    .settings-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 50;
+    }
+
+    .settings-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+
+    @media (max-width: 500px) {
+      .gender-buttons { grid-template-columns: 1fr; }
+      .container { padding: 16px 14px 30px; }
+      .setup-card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- API Key Setup Overlay -->
+  <div class="setup-overlay" id="setupOverlay">
+    <div class="setup-card">
+      <h2>הגדרה ראשונית (פעם אחת)</h2>
+      <div class="subtitle">צריך מפתח חינמי מ-Groq כדי שה-AI יתקן את הטקסט</div>
+
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            היכנסו ל-<a href="https://console.groq.com/keys" target="_blank">Groq Console</a>
+            (הירשמו בחינם עם Google)
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div class="step-text">לחצו על <strong>"Create API Key"</strong> ותנו שם כלשהו</div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <div class="step-text">העתיקו את המפתח והדביקו אותו כאן למטה</div>
+        </div>
+      </div>
+
+      <input type="password" class="key-input" id="apiKeyInput" placeholder="gsk_..." dir="ltr">
+      <button class="setup-btn" id="saveKeyBtn" onclick="saveApiKey()" disabled>שמור והתחל</button>
+      <div class="setup-note">המפתח נשמר רק בדפדפן שלכם ולא נשלח לשום מקום חוץ מ-Groq</div>
+    </div>
+  </div>
+
+  <!-- Settings Button -->
+  <button class="settings-btn" id="settingsBtn" onclick="showSetup()">⚙️</button>
+
+  <div class="header">
+    <h1>מתקן כתיב לשירות לקוחות</h1>
+    <p>תיקון שגיאות כתיב ודקדוק באמצעות AI &bull; חינם</p>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+      <div class="card-label">📝 הדביקו את ההודעה ללקוח</div>
+      <textarea id="inputText" placeholder="הדביקו כאן את ההודעה ללקוח..." autofocus></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-label">👤 מגדר פנייה ללקוח</div>
+      <div class="gender-buttons">
+        <button class="gender-btn" onclick="selectGender('male', this)">
+          <span class="emoji">👨</span> פנייה לגבר
+        </button>
+        <button class="gender-btn" onclick="selectGender('female', this)">
+          <span class="emoji">👩</span> פנייה לאישה
+        </button>
+        <button class="gender-btn" onclick="selectGender('neutral', this)">
+          <span class="emoji">👤</span> ללא מגדר
+        </button>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="correctText()" disabled>
+      <span class="btn-text">תקנו את הטקסט</span>
+      <span class="spinner"></span>
+    </button>
+    <div class="shortcut-hint">Ctrl+Enter לתיקון מהיר</div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="card result-card" id="resultCard">
+      <div class="card-label">✅ טקסט מתוקן</div>
+      <div class="result-text" id="resultText"></div>
+      <div class="actions">
+        <button class="action-btn" id="copyBtn" onclick="copyResult()">📋 העתקה</button>
+        <button class="action-btn" onclick="clearAll()">🔄 הודעה חדשה</button>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+// ==================== API KEY MANAGEMENT ====================
+
+const STORAGE_KEY = 'spell-checker-gemini-key';
+
+function getApiKey() {
+  return localStorage.getItem(STORAGE_KEY) || '';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return;
+  localStorage.setItem(STORAGE_KEY, key);
+  document.getElementById('setupOverlay').classList.add('hidden');
+}
+
+function showSetup() {
+  document.getElementById('apiKeyInput').value = getApiKey();
+  document.getElementById('setupOverlay').classList.remove('hidden');
+  document.getElementById('saveKeyBtn').disabled = !getApiKey();
+}
+
+document.getElementById('apiKeyInput').addEventListener('input', (e) => {
+  document.getElementById('saveKeyBtn').disabled = !e.target.value.trim();
+});
+
+// On load: show setup if no key
+if (!getApiKey()) {
+  document.getElementById('setupOverlay').classList.remove('hidden');
+} else {
+  document.getElementById('setupOverlay').classList.add('hidden');
+}
+
+// ==================== GEMINI API ====================
+
+const GENDER_PROMPTS = {
+  male: 'הפנייה ללקוח צריכה להיות בלשון זכר (אתה, שלך, מוזמן, תרשום, תשלח וכו\')',
+  female: 'הפנייה ללקוח צריכה להיות בלשון נקבה (את, שלך, מוזמנת, תרשמי, תשלחי וכו\')',
+  neutral: 'השתמש בפנייה ניטרלית ללא מגדר (ניתן, אפשר, מוזמן/ת, ניצור קשר וכו\')',
+};
+
+async function callGroq(text, gender) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    showSetup();
+    throw new Error('No API key');
+  }
+
+  const genderInstruction = GENDER_PROMPTS[gender];
+
+  const prompt = `אתה עורך טקסט מקצועי בעברית עבור שירות לקוחות.
+
+תפקידך: לקבל טקסט של נציג שירות ולהחזיר גרסה מתוקנת ומשופרת.
+
+כללים:
+1. תקן שגיאות כתיב ודקדוק (כולל ה' הידיעה חסרה, אותיות כפולות וכו')
+2. שפר ניסוח כשהוא לא ברור או לא מקצועי (למשל: "ניתן עוד הנחה" → "נוכל לתת הנחה נוספת")
+3. ${genderInstruction}
+4. אל תשנה את המגדר של הנציג הכותב - רק של הפנייה ללקוח
+5. שמור על המשמעות והטון המקוריים
+6. החזר רק את הטקסט המתוקן, בלי הסברים ובלי הערות
+
+הטקסט לתיקון:
+${text}`;
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: 'אתה מתקן כתיב ודקדוק בעברית. החזר רק את הטקסט המתוקן, ללא הסברים.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.1,
+      max_tokens: 2048
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err.error?.message || '';
+
+    if (res.status === 401) {
+      localStorage.removeItem(STORAGE_KEY);
+      showSetup();
+      throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
+    }
+    if (res.status === 429) {
+      throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
+    }
+    throw new Error(msg || 'שגיאה בתקשורת. נסו שוב.');
+  }
+
+  const data = await res.json();
+  const result = data.choices?.[0]?.message?.content;
+  if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
+
+  return result.trim();
+}
+
+// ==================== UI ====================
+
+let selectedGender = null;
+
+function selectGender(gender, btn) {
+  selectedGender = gender;
+  document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateBtn();
+}
+
+function updateBtn() {
+  document.getElementById('submitBtn').disabled =
+    !document.getElementById('inputText').value.trim() || !selectedGender;
+}
+
+document.getElementById('inputText').addEventListener('input', updateBtn);
+
+async function correctText() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text || !selectedGender) return;
+
+  const btn = document.getElementById('submitBtn');
+  const errorEl = document.getElementById('errorMsg');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  errorEl.classList.remove('visible');
+  document.getElementById('resultCard').classList.remove('visible');
+
+  try {
+    const corrected = await callGroq(text, selectedGender);
+    document.getElementById('resultText').textContent = corrected;
+    document.getElementById('resultCard').classList.add('visible');
+    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    errorEl.textContent = err.message || 'שגיאה בתיקון הטקסט';
+    errorEl.classList.add('visible');
+  } finally {
+    btn.classList.remove('loading');
+    updateBtn();
+  }
+}
+
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('resultCard').classList.remove('visible');
+  document.getElementById('errorMsg').classList.remove('visible');
+  selectedGender = null;
+  document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('inputText').focus();
+}
+
+async function copyResult() {
+  const text = document.getElementById('resultText').textContent;
+  const btn = document.getElementById('copyBtn');
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.innerHTML = '✅ הועתק!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = '📋 העתקה'; btn.classList.remove('copied'); }, 2000);
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('resultText'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  }
+}
+
+document.getElementById('inputText').addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key === 'Enter' && !document.getElementById('submitBtn').disabled) correctText();
+});
+
+document.getElementById('apiKeyInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !document.getElementById('saveKeyBtn').disabled) saveApiKey();
+});
+</script>
+</body>
+</html>

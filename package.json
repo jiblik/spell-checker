@@ -1,0 +1,14 @@
+{
+  "name": "spell-checker",
+  "version": "1.0.0",
+  "description": "Hebrew spell checker for customer service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "express": "^4.21.0"
+  }
+}
