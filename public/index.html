@@ -437,15 +437,12 @@
 
     <div class="card">
       <div class="card-label">📱 פלטפורמה</div>
-      <div class="gender-buttons">
+      <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
         <button class="gender-btn" onclick="selectPlatform('instagram', this)">
           <span class="emoji">📸</span> אינסטגרם
         </button>
-        <button class="gender-btn" onclick="selectPlatform('whatsapp', this)">
-          <span class="emoji">💬</span> וואטסאפ
-        </button>
-        <button class="gender-btn" onclick="selectPlatform('crm', this)">
-          <span class="emoji">📋</span> CRM / ליד
+        <button class="gender-btn" onclick="selectPlatform('formal', this)">
+          <span class="emoji">💼</span> וואטסאפ / CRM / ליד
         </button>
       </div>
     </div>
@@ -549,8 +546,7 @@ const GENDER_PROMPTS = {
 
 const PLATFORM_PROMPTS = {
   instagram: 'הטון צריך להיות חם, עממי וידידותי - כמו שיחה בין חברים. אפשר להשתמש באימוג\'י כשמתאים. קצר וקולע.',
-  whatsapp: 'הטון צריך להיות מקצועי אבל אדיב ונגיש. מובנה וברור, בלי להיות קר מדי.',
-  crm: 'הטון צריך להיות רשמי ומקצועי. ניסוח עסקי, מנומס, מדויק ומובנה.',
+  formal: 'הטון צריך להיות רשמי ומקצועי. ניסוח עסקי, מנומס, מדויק ומובנה.',
 };
 
 async function callGroq(text, gender, platform) {
