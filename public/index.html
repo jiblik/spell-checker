@@ -198,6 +198,75 @@
       white-space: pre-wrap;
     }
 
+    .suggestion-card { display: none; }
+    .suggestion-card.visible { display: block; }
+
+    .suggestion-box {
+      background: rgba(96, 165, 250, 0.06);
+      border: 1px solid rgba(96, 165, 250, 0.25);
+      border-radius: 12px;
+      padding: 16px;
+      direction: rtl;
+      line-height: 1.7;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .suggestion-box .tip-title {
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .suggestion-box .tip-text {
+      margin-bottom: 10px;
+    }
+
+    .suggestion-box .tip-example {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.7;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+    }
+
+    .suggestion-box .tip-example:hover {
+      border-color: var(--accent);
+    }
+
+    .suggestion-box .tip-example::after {
+      content: "📋 לחץ להעתקה";
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      font-size: 11px;
+      color: var(--text-dim);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .suggestion-box .tip-example:hover::after {
+      opacity: 1;
+    }
+
+    .suggestion-box .tip-example.copied-tip {
+      border-color: #22c55e;
+    }
+
+    .suggestion-box .tip-example.copied-tip::after {
+      content: "✅ הועתק!";
+      color: #22c55e;
+      opacity: 1;
+    }
+
     .actions {
       display: flex;
       gap: 10px;
@@ -479,6 +548,11 @@
       </div>
     </div>
 
+    <div class="card suggestion-card" id="suggestionCard">
+      <div class="card-label">💡 המלצה לשיחה</div>
+      <div class="suggestion-box" id="suggestionBox"></div>
+    </div>
+
   </div>
 
 <script>
@@ -549,40 +623,32 @@ const PLATFORM_PROMPTS = {
   formal: 'הטון צריך להיות רשמי ומקצועי. ניסוח עסקי, מנומס, מדויק ומובנה.',
 };
 
-async function callGroq(text, gender, platform) {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    showSetup();
-    throw new Error('No API key');
-  }
+const SERVICE_GUIDELINES = `
+כללי שירות לקוחות של אופטיסטור (לעשות):
+- לענות בטון חם, אישי ולבבי עם אימוג'י כשמתאים
+- לסיים כל תשובה בהזמנה לפנות שוב (נשמח לעזור בכל שאלה נוספת)
+- תמיד לתת מחיר כשנשאלים ולהציג מחיר לפני ואחרי הנחה
+- להתחיל במה שיש במלאי ורק אחר כך להתייחס למה שאין
+- להציע אלטרנטיבות כשמשהו חסר ולשאול מה הסגנון שמחפשים
+- לפנות ללקוח בשם הנכון ובלשון מגדרית נכונה
+- לעודד המשך שיחה ולהזמין לסניף או לאתר
+- להדגיש שאנחנו רשת בפריסה ארצית ושאפשר להזמין אונליין
+- לבקש טלפון מהלקוח כדי לחזור אליו במקום לשלוח אותו למוקד
 
-  const genderInstruction = GENDER_PROMPTS[gender];
-  const platformInstruction = PLATFORM_PROMPTS[platform];
+כללי שירות לקוחות של אופטיסטור (לא לעשות):
+- לא לכתוב עם שגיאות כתיב
+- לא לכתוב הודעות ארוכות מדי, לשמור על קצר וברור
+- לא לענות בצורה קרה או מנפנפת
+- לא להשתמש במילה "זול" אלא "מחירים אטרקטיביים" או "הכי טובים"
+- לא לבטל קופונים ישירות, לתת הרגשה שמועדון הלקוחות זה כמו קופון קבוע
+- לא להציף בפרטים על מועדון בהתחלה ולא להזכיר עלויות הצטרפות בשלב ראשון
+- לא לשלוח לקוחות למתחרים, להציע שיבואו אלינו
+- לא להשתמש במונחים מקצועיים בלי להסביר אותם
+- לא להיות מסחרי מדי, לדבר כמו חבר ולא כמו פרסומת
+- לא להתחיל תשובה עם "לצערי" או עם מה שאין
+`;
 
-  const prompt = `אתה עורך טקסט מקצועי בעברית עבור שירות לקוחות.
-
-תפקידך: לקבל טקסט של נציג/ת שירות ולהחזיר גרסה מתוקנת ומשופרת.
-
-כללים:
-1. תקן שגיאות כתיב ודקדוק (כולל ה' הידיעה חסרה, אותיות כפולות וכו')
-2. שפר ניסוח כשהוא לא ברור או לא מקצועי (למשל: "ניתן עוד הנחה" → "נוכל לתת הנחה נוספת")
-3. ${genderInstruction}
-
-טון לפי פלטפורמה:
-4. ${platformInstruction}
-
-חשוב מאוד - מגדר הנציג/ת:
-5. כשהנציג/ת כותב/ת על עצמו/ה (אני יכולה, אני יכול, בדקתי, שלחתי, אשמח) - אל תשנה את המגדר! זה המגדר האמיתי של הכותב/ת.
-   - אם כתוב "אני יכולה לבדוק" - השאר "אני יכולה לבדוק" (הנציגה היא אישה)
-   - אם כתוב "אני יכול לבדוק" - השאר "אני יכול לבדוק" (הנציג הוא גבר)
-   - שנה מגדר רק בפנייה ללקוח (אתה/את, מוזמן/מוזמנת, תרשום/תרשמי)
-
-6. שמור על המשמעות המקורית
-7. החזר רק את הטקסט המתוקן, בלי הסברים ובלי הערות
-
-הטקסט לתיקון:
-${text}`;
-
+async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -591,19 +657,15 @@ ${text}`;
     },
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: 'אתה מתקן כתיב ודקדוק בעברית. החזר רק את הטקסט המתוקן, ללא הסברים.' },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.1,
-      max_tokens: 2048
+      messages,
+      temperature,
+      max_tokens: maxTokens
     })
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const msg = err.error?.message || '';
-
     if (res.status === 401) {
       localStorage.removeItem(STORAGE_KEY);
       showSetup();
@@ -618,8 +680,96 @@ ${text}`;
   const data = await res.json();
   const result = data.choices?.[0]?.message?.content;
   if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
-
   return result.trim();
+}
+
+async function callGroq(text, gender, platform) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    showSetup();
+    throw new Error('No API key');
+  }
+
+  const genderInstruction = GENDER_PROMPTS[gender];
+  const platformInstruction = PLATFORM_PROMPTS[platform];
+
+  const prompt = `אתה עורך טקסט מקצועי בעברית עבור שירות לקוחות של רשת אופטיקה "אופטיסטור".
+
+תפקידך: לקבל טקסט של נציג/ת שירות ולהחזיר גרסה מתוקנת ומשופרת.
+
+${SERVICE_GUIDELINES}
+
+כללי עריכה:
+1. תקן שגיאות כתיב ודקדוק (כולל ה' הידיעה חסרה, אותיות כפולות וכו')
+2. שפר ניסוח כשהוא לא ברור או לא מקצועי
+3. ${genderInstruction}
+
+טון לפי פלטפורמה:
+4. ${platformInstruction}
+
+חשוב מאוד - מגדר הנציג/ת:
+5. כשהנציג/ת כותב/ת על עצמו/ה (אני יכולה, אני יכול, בדקתי, שלחתי, אשמח) - אל תשנה את המגדר! זה המגדר האמיתי של הכותב/ת.
+   - אם כתוב "אני יכולה לבדוק" - השאר "אני יכולה לבדוק" (הנציגה היא אישה)
+   - אם כתוב "אני יכול לבדוק" - השאר "אני יכול לבדוק" (הנציג הוא גבר)
+   - שנה מגדר רק בפנייה ללקוח (אתה/את, מוזמן/מוזמנת, תרשום/תרשמי)
+
+6. אם ההודעה מתחילה עם "לצערי" או עם מה שאין - שנה כך שיתחיל עם מה שכן יש
+7. אם חסרה סיומת מזמינה (כמו "נשמח לעזור בכל שאלה") - הוסף אחת קצרה ומתאימה
+8. שמור על המשמעות המקורית
+9. החזר רק את הטקסט המתוקן, בלי הסברים ובלי הערות
+
+הטקסט לתיקון:
+${text}`;
+
+  return callGroqRaw(apiKey, [
+    { role: 'system', content: 'אתה מתקן כתיב ודקדוק בעברית לפי כללי שירות הלקוחות של אופטיסטור. החזר רק את הטקסט המתוקן, ללא הסברים.' },
+    { role: 'user', content: prompt }
+  ], 0.1, 2048);
+}
+
+async function callSuggestion(text, platform) {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+
+  const platformContext = platform === 'instagram'
+    ? 'ההודעה מיועדת לאינסטגרם (טון חם וידידותי)'
+    : 'ההודעה מיועדת לוואטסאפ/CRM/ליד (טון רשמי ומקצועי)';
+
+  const prompt = `אתה יועץ שירות לקוחות של רשת אופטיקה "אופטיסטור".
+
+${SERVICE_GUIDELINES}
+
+קיבלת הודעה שנציג/ת עומד/ת לשלוח ללקוח.
+${platformContext}
+
+נתח את ההודעה ותן המלצה אחת קצרה וממוקדת - מה כדאי להוסיף או לשפר בשיחה.
+
+דוגמאות להמלצות:
+- להוסיף קישור לדגם באתר optistore.net
+- להציע דגם חלופי אם מדובר בדגם חסר
+- להזמין את הלקוח/ה לסניף הקרוב
+- להציע להצטרף למועדון לקוחות
+- לבקש טלפון לחזרה אישית
+- להציע בדיקת ראייה חינם בסניף
+- להוסיף השוואת מחירים
+- להמליץ על דגם משלים (למשל משקפי שמש + ראייה)
+
+ענה בפורמט הזה בדיוק (3 שורות):
+שורה 1: כותרת קצרה של ההמלצה (עד 6 מילים)
+שורה 2: הסבר קצר למה (משפט אחד)
+שורה 3: דוגמה למשפט שהנציג/ת יכול/ה להוסיף (מוכן להעתקה)
+
+ההודעה של הנציג/ת:
+${text}`;
+
+  try {
+    return await callGroqRaw(apiKey, [
+      { role: 'system', content: 'אתה יועץ שירות לקוחות. ענה תמיד בדיוק 3 שורות: כותרת, הסבר, ודוגמה. בעברית בלבד.' },
+      { role: 'user', content: prompt }
+    ], 0.4, 512);
+  } catch {
+    return null;
+  }
 }
 
 // ==================== UI ====================
@@ -661,9 +811,37 @@ async function correctText() {
   document.getElementById('resultCard').classList.remove('visible');
 
   try {
-    const corrected = await callGroq(text, selectedGender, selectedPlatform);
+    // Run correction and suggestion in parallel
+    const [corrected, suggestion] = await Promise.all([
+      callGroq(text, selectedGender, selectedPlatform),
+      callSuggestion(text, selectedPlatform)
+    ]);
+
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
+
+    // Show suggestion
+    const suggestionCard = document.getElementById('suggestionCard');
+    const suggestionBox = document.getElementById('suggestionBox');
+    if (suggestion) {
+      const lines = suggestion.split('\n').filter(l => l.trim());
+      if (lines.length >= 2) {
+        const title = lines[0].replace(/^\d+[\.\)\-:\s]*/, '').trim();
+        const explanation = lines[1].replace(/^\d+[\.\)\-:\s]*/, '').trim();
+        const example = lines.length >= 3 ? lines.slice(2).join(' ').replace(/^\d+[\.\)\-:\s]*/, '').replace(/^["״"']|["״"']$/g, '').trim() : '';
+
+        let html = `<div class="tip-title">💡 ${title}</div>`;
+        html += `<div class="tip-text">${explanation}</div>`;
+        if (example) {
+          html += `<div class="tip-example" onclick="copySuggestion(this)">${example}</div>`;
+        }
+        suggestionBox.innerHTML = html;
+        suggestionCard.classList.add('visible');
+      }
+    } else {
+      suggestionCard.classList.remove('visible');
+    }
+
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
     errorEl.textContent = err.message || 'שגיאה בתיקון הטקסט';
@@ -677,12 +855,27 @@ async function correctText() {
 function clearAll() {
   document.getElementById('inputText').value = '';
   document.getElementById('resultCard').classList.remove('visible');
+  document.getElementById('suggestionCard').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
   selectedGender = null;
   selectedPlatform = null;
   document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('inputText').focus();
+}
+
+async function copySuggestion(el) {
+  const text = el.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    el.classList.add('copied-tip');
+    setTimeout(() => el.classList.remove('copied-tip'), 2000);
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  }
 }
 
 async function copyResult() {
