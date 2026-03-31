@@ -217,6 +217,36 @@
     }
 
 
+    /* UTM Builder */
+    .utm-result {
+      display: none;
+      margin-top: 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      direction: ltr;
+      text-align: left;
+    }
+    .utm-result.visible { display: block; }
+    .utm-link {
+      font-size: 13px;
+      color: var(--accent);
+      word-break: break-all;
+      line-height: 1.6;
+      margin-bottom: 10px;
+      user-select: all;
+    }
+    .utm-result .action-btn {
+      width: 100%;
+      text-align: center;
+    }
+    .utm-btn.active {
+      border-color: var(--accent);
+      background: rgba(96, 165, 250, 0.1);
+      color: var(--accent);
+    }
+
     /* Coaching card */
     .coaching-card { display: none; }
     .coaching-card.visible { display: block; }
@@ -699,6 +729,30 @@
             <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
             <div class="ask-answer-content" id="askAnswerText"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- UTM Builder -->
+      <div class="card" style="order: 3;">
+        <div class="card-label">🔗 בונה קישורים עם UTM</div>
+        <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן קישור..." dir="ltr" style="text-align: left; margin-bottom: 12px;">
+        <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
+          <button class="gender-btn utm-btn" onclick="buildUTM('instagram_story', this)">
+            <span class="emoji">📖</span> אינסטגרם סטורי
+          </button>
+          <button class="gender-btn utm-btn" onclick="buildUTM('instagram_dm', this)">
+            <span class="emoji">💬</span> אינסטגרם DM
+          </button>
+          <button class="gender-btn utm-btn" onclick="buildUTM('facebook_dm', this)">
+            <span class="emoji">💬</span> פייסבוק DM
+          </button>
+          <button class="gender-btn utm-btn" onclick="buildUTM('whatsapp', this)">
+            <span class="emoji">📱</span> וואטסאפ
+          </button>
+        </div>
+        <div class="utm-result" id="utmResult">
+          <div class="utm-link" id="utmLink"></div>
+          <button class="action-btn" id="utmCopyBtn" onclick="copyUTM()">📋 העתק קישור</button>
         </div>
       </div>
 
@@ -1206,6 +1260,51 @@ async function correctText() {
     updateBtn();
   }
 }
+
+// ==================== UTM BUILDER ====================
+
+const UTM_MAP = {
+  instagram_story: '&utm_source=instagram&utm_medium=social&utm_campaign=instagram_story',
+  instagram_dm: '&utm_source=instagram&utm_medium=social&utm_campaign=instagram_dm',
+  facebook_dm: '&utm_source=facebook&utm_medium=social&utm_campaign=facebook_dm',
+  whatsapp: '&utm_source=whatsapp&utm_medium=social&utm_campaign=whatsapp',
+};
+
+function buildUTM(type, btn) {
+  const link = document.getElementById('utmLinkInput').value.trim();
+  if (!link) return;
+
+  // Highlight selected button
+  document.querySelectorAll('.utm-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const fullLink = link + UTM_MAP[type];
+  document.getElementById('utmLink').textContent = fullLink;
+  document.getElementById('utmResult').classList.add('visible');
+}
+
+async function copyUTM() {
+  const link = document.getElementById('utmLink').textContent;
+  const btn = document.getElementById('utmCopyBtn');
+  try {
+    await navigator.clipboard.writeText(link);
+    btn.textContent = '✅ הועתק!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 העתק קישור'; btn.classList.remove('copied'); }, 2000);
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('utmLink'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  }
+}
+
+document.getElementById('utmLinkInput').addEventListener('input', () => {
+  document.getElementById('utmResult').classList.remove('visible');
+  document.querySelectorAll('.utm-btn').forEach(b => b.classList.remove('active'));
+});
+
+// ==================== CLEAR ====================
 
 function clearAll() {
   document.getElementById('contextText').value = '';
