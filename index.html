@@ -680,6 +680,205 @@
       color: var(--text-muted);
     }
 
+    /* Login overlay */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      padding: 20px;
+    }
+    .login-overlay.hidden { display: none; }
+    .login-card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 36px;
+      max-width: 400px;
+      width: 100%;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .login-card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 12px; }
+    .login-card h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .login-card .login-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+    .login-card select, .login-card input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text);
+      font-family: 'Noto Sans Hebrew', sans-serif;
+      font-size: 15px;
+      direction: rtl;
+      margin-bottom: 12px;
+      appearance: auto;
+    }
+    .login-card select:focus, .login-card input:focus { outline: none; border-color: var(--accent); }
+    .login-card .login-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-family: 'Noto Sans Hebrew', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .login-card .login-btn:hover { transform: translateY(-1px); }
+    .login-card .login-error { color: #ef4444; font-size: 13px; margin-bottom: 10px; display: none; }
+    .login-card .login-error.visible { display: block; }
+
+    /* Dashboard */
+    .dashboard-section { display: none; }
+    .dashboard-section.visible { display: block; }
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      direction: rtl;
+    }
+    .dashboard-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .dashboard-filters {
+      display: flex;
+      gap: 10px;
+      direction: rtl;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .dashboard-filters select {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text);
+      font-family: 'Noto Sans Hebrew', sans-serif;
+      font-size: 13px;
+      direction: rtl;
+    }
+    .log-table {
+      width: 100%;
+      border-collapse: collapse;
+      direction: rtl;
+      font-size: 13px;
+    }
+    .log-table th {
+      background: rgba(96, 165, 250, 0.1);
+      color: var(--accent);
+      font-weight: 600;
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .log-table td {
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-table tr:hover td { background: rgba(96, 165, 250, 0.04); }
+    .log-empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .user-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-admin { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .badge-viewer { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .badge-agent { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+
+    .tab-buttons {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: var(--bg-input);
+      color: var(--text-muted);
+      font-family: 'Noto Sans Hebrew', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+    }
+    .tab-btn:not(.active):hover { background: rgba(96, 165, 250, 0.08); color: var(--text); }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+      direction: rtl;
+    }
+    .stat-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-num { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .logged-user {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      z-index: 50;
+      direction: rtl;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logged-user .logout-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+    }
+    .logged-user .logout-btn:hover { color: #ef4444; }
+
     @media (max-width: 500px) {
       .gender-buttons { grid-template-columns: 1fr; }
       .container { padding: 16px 14px 30px; }
@@ -688,6 +887,28 @@
   </style>
 </head>
 <body>
+
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <img src="logo.png" alt="אופטיסטור">
+      <h2>העוזר האישי של אופטיסטור</h2>
+      <div class="login-sub">בחרו את השם שלכם והכניסו סיסמה</div>
+      <select id="loginUser">
+        <option value="">בחרו משתמש...</option>
+        <option value="igor">איגור (מנהל)</option>
+        <option value="dudi">דודי</option>
+        <option value="gil">גיל</option>
+        <option value="ori">אורי</option>
+        <option value="roi">רועי</option>
+        <option value="tania">טניה</option>
+        <option value="rivka">רבקה</option>
+      </select>
+      <input type="password" id="loginPass" placeholder="סיסמה...">
+      <div class="login-error" id="loginError">סיסמה שגויה ❌</div>
+      <button class="login-btn" onclick="doLogin()">כניסה</button>
+    </div>
+  </div>
 
   <!-- API Key Setup Overlay -->
   <div class="setup-overlay" id="setupOverlay">
@@ -742,7 +963,66 @@
     <h1>העוזר האישי של אופטיסטור</h1>
   </div>
 
+  <!-- Logged in user badge -->
+  <div class="logged-user" id="userBadge" style="display:none;">
+    <span id="userBadgeName"></span>
+    <button class="logout-btn" onclick="doLogout()" title="התנתק">✕</button>
+  </div>
+
   <div class="container">
+
+    <!-- Tabs for admin/viewer -->
+    <div class="tab-buttons" id="tabButtons" style="display:none;">
+      <button class="tab-btn active" onclick="switchTab('tool', this)" id="tabTool">🛠️ כלי עבודה</button>
+      <button class="tab-btn" onclick="switchTab('dashboard', this)" id="tabDashboard">📊 לוח בקרה</button>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div class="dashboard-section" id="dashboardSection">
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">סה"כ תיקונים</div></div>
+        <div class="stat-card"><div class="stat-num" id="statToday">0</div><div class="stat-label">היום</div></div>
+        <div class="stat-card"><div class="stat-num" id="statAgents">0</div><div class="stat-label">נציגים פעילים</div></div>
+      </div>
+      <div class="card">
+        <div class="dashboard-header">
+          <h2>📋 היסטוריית תיקונים</h2>
+        </div>
+        <div class="dashboard-filters">
+          <select id="filterAgent" onchange="filterLogs()">
+            <option value="">כל הנציגים</option>
+            <option value="רועי">רועי</option>
+            <option value="טניה">טניה</option>
+            <option value="רבקה">רבקה</option>
+          </select>
+          <select id="filterPlatform" onchange="filterLogs()">
+            <option value="">כל הפלטפורמות</option>
+            <option value="אינסטגרם">אינסטגרם</option>
+            <option value="וואטסאפ / CRM">וואטסאפ / CRM</option>
+          </select>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>תאריך</th>
+                <th>נציג/ה</th>
+                <th>פלטפורמה</th>
+                <th>הלקוח כתב</th>
+                <th>הנציג כתב</th>
+                <th>המערכת תיקנה</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+              <tr><td colspan="6" class="log-empty">טוען נתונים...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool Section -->
+    <div id="toolSection">
 
     <div class="two-columns">
       <!-- Left column: Ask + UTM -->
@@ -851,9 +1131,197 @@
       <div class="coaching-box" id="coachingBox"></div>
     </div>
 
+    </div><!-- end toolSection -->
+
   </div>
 
 <script>
+// ==================== USER SYSTEM ====================
+
+const USERS = {
+  igor:  { name: 'איגור', pass: 'Optistore2525@', role: 'admin' },
+  dudi:  { name: 'דודי', pass: 'Opti2525', role: 'viewer' },
+  gil:   { name: 'גיל', pass: 'Opti2525', role: 'viewer' },
+  ori:   { name: 'אורי', pass: 'Opti2525', role: 'viewer' },
+  roi:   { name: 'רועי', pass: 'Opti123', role: 'agent' },
+  tania: { name: 'טניה', pass: 'Opti123', role: 'agent' },
+  rivka: { name: 'רבקה', pass: 'Opti123', role: 'agent' },
+};
+
+const USER_KEY = 'spell-checker-user';
+let currentUser = null;
+
+// Google Apps Script URL for logging (will be set up)
+let APPS_SCRIPT_URL = localStorage.getItem('spell-checker-log-url') || '';
+
+function doLogin() {
+  const userId = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  const errorEl = document.getElementById('loginError');
+
+  if (!userId || !USERS[userId]) {
+    errorEl.textContent = 'בחרו משתמש';
+    errorEl.classList.add('visible');
+    return;
+  }
+
+  if (pass !== USERS[userId].pass) {
+    errorEl.textContent = 'סיסמה שגויה ❌';
+    errorEl.classList.add('visible');
+    return;
+  }
+
+  currentUser = { id: userId, ...USERS[userId] };
+  localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+  errorEl.classList.remove('visible');
+  applyLogin();
+}
+
+function doLogout() {
+  currentUser = null;
+  localStorage.removeItem(USER_KEY);
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('userBadge').style.display = 'none';
+  document.getElementById('toolSection').style.display = 'none';
+  document.getElementById('dashboardSection').classList.remove('visible');
+  document.getElementById('tabButtons').style.display = 'none';
+}
+
+function applyLogin() {
+  document.getElementById('loginOverlay').classList.add('hidden');
+
+  // Show user badge
+  const badge = document.getElementById('userBadge');
+  const roleLabel = currentUser.role === 'admin' ? 'מנהל' : currentUser.role === 'viewer' ? 'בקרה' : 'נציג';
+  document.getElementById('userBadgeName').textContent = `${currentUser.name} (${roleLabel})`;
+  badge.style.display = 'flex';
+
+  const toolSection = document.getElementById('toolSection');
+  const dashboardSection = document.getElementById('dashboardSection');
+  const tabButtons = document.getElementById('tabButtons');
+
+  if (currentUser.role === 'admin') {
+    // Admin sees tabs: tool + dashboard
+    tabButtons.style.display = 'flex';
+    toolSection.style.display = 'block';
+    dashboardSection.classList.remove('visible');
+    loadLogs();
+  } else if (currentUser.role === 'viewer') {
+    // Viewer sees only dashboard
+    tabButtons.style.display = 'none';
+    toolSection.style.display = 'none';
+    dashboardSection.classList.add('visible');
+    loadLogs();
+  } else {
+    // Agent sees only tool
+    tabButtons.style.display = 'none';
+    toolSection.style.display = 'block';
+    dashboardSection.classList.remove('visible');
+  }
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (tab === 'tool') {
+    document.getElementById('toolSection').style.display = 'block';
+    document.getElementById('dashboardSection').classList.remove('visible');
+  } else {
+    document.getElementById('toolSection').style.display = 'none';
+    document.getElementById('dashboardSection').classList.add('visible');
+    loadLogs();
+  }
+}
+
+// Auto-login if saved
+const savedUser = localStorage.getItem(USER_KEY);
+if (savedUser) {
+  try {
+    currentUser = JSON.parse(savedUser);
+    if (USERS[currentUser.id]) {
+      applyLogin();
+    } else {
+      doLogout();
+    }
+  } catch { doLogout(); }
+}
+
+document.getElementById('loginPass').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ==================== LOGGING ====================
+
+const LOG_STORAGE_KEY = 'spell-checker-logs';
+
+function getLocalLogs() {
+  try { return JSON.parse(localStorage.getItem(LOG_STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveLog(entry) {
+  // Save locally
+  const logs = getLocalLogs();
+  logs.unshift(entry);
+  if (logs.length > 500) logs.length = 500; // Keep last 500
+  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logs));
+
+  // Send to Google Apps Script if URL is set
+  if (APPS_SCRIPT_URL) {
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    }).catch(() => {});
+  }
+}
+
+function loadLogs() {
+  const logs = getLocalLogs();
+  updateStats(logs);
+  renderLogs(logs);
+}
+
+function updateStats(logs) {
+  const today = new Date().toLocaleDateString('he-IL');
+  const todayLogs = logs.filter(l => l.date && l.date.startsWith(today));
+  const agents = new Set(logs.filter(l => l.agent).map(l => l.agent));
+
+  document.getElementById('statTotal').textContent = logs.length;
+  document.getElementById('statToday').textContent = todayLogs.length;
+  document.getElementById('statAgents').textContent = agents.size;
+}
+
+function renderLogs(logs) {
+  const tbody = document.getElementById('logTableBody');
+  const agentFilter = document.getElementById('filterAgent').value;
+  const platformFilter = document.getElementById('filterPlatform').value;
+
+  let filtered = logs;
+  if (agentFilter) filtered = filtered.filter(l => l.agent === agentFilter);
+  if (platformFilter) filtered = filtered.filter(l => l.platform === platformFilter);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="log-empty">אין תיקונים עדיין</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.slice(0, 100).map(l => `
+    <tr>
+      <td>${l.date || ''}</td>
+      <td>${l.agent || ''}</td>
+      <td>${l.platform || ''}</td>
+      <td title="${(l.context || '').replace(/"/g, '&quot;')}">${l.context || '-'}</td>
+      <td title="${(l.original || '').replace(/"/g, '&quot;')}">${l.original || ''}</td>
+      <td title="${(l.corrected || '').replace(/"/g, '&quot;')}">${l.corrected || ''}</td>
+    </tr>
+  `).join('');
+}
+
+function filterLogs() { loadLogs(); }
+
 // ==================== THEME ====================
 
 const THEME_KEY = 'spell-checker-theme';
@@ -1284,6 +1752,19 @@ async function correctText() {
     }
 
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Log the action
+    if (currentUser) {
+      const platformLabel = selectedPlatform === 'instagram' ? 'אינסטגרם' : 'וואטסאפ / CRM';
+      saveLog({
+        date: new Date().toLocaleString('he-IL'),
+        agent: currentUser.name,
+        platform: platformLabel,
+        context: customerContext || '',
+        original: text,
+        corrected: corrected,
+      });
+    }
   } catch (err) {
     errorEl.textContent = err.message || 'שגיאה בתיקון הטקסט';
     errorEl.classList.add('visible');
