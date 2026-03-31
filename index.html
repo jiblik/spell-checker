@@ -76,11 +76,24 @@
 
     .container {
       width: 100%;
-      max-width: 800px;
+      max-width: 1200px;
       padding: 24px 20px 40px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .two-columns {
+        grid-template-columns: 1fr;
+      }
     }
 
     .card {
@@ -203,74 +216,6 @@
       white-space: pre-wrap;
     }
 
-    .suggestion-card { display: none; }
-    .suggestion-card.visible { display: block; }
-
-    .suggestion-box {
-      background: rgba(96, 165, 250, 0.06);
-      border: 1px solid rgba(96, 165, 250, 0.25);
-      border-radius: 12px;
-      padding: 16px;
-      direction: rtl;
-      line-height: 1.7;
-      font-size: 14px;
-      color: var(--text);
-    }
-
-    .suggestion-box .tip-title {
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 8px;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .suggestion-box .tip-text {
-      margin-bottom: 10px;
-    }
-
-    .suggestion-box .tip-example {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 14px;
-      line-height: 1.7;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      position: relative;
-    }
-
-    .suggestion-box .tip-example:hover {
-      border-color: var(--accent);
-    }
-
-    .suggestion-box .tip-example::after {
-      content: "📋 לחץ להעתקה";
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      font-size: 11px;
-      color: var(--text-dim);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .suggestion-box .tip-example:hover::after {
-      opacity: 1;
-    }
-
-    .suggestion-box .tip-example.copied-tip {
-      border-color: #22c55e;
-    }
-
-    .suggestion-box .tip-example.copied-tip::after {
-      content: "✅ הועתק!";
-      color: #22c55e;
-      opacity: 1;
-    }
 
     /* Ask section */
     .ask-section {
@@ -721,43 +666,66 @@
 
   <div class="container">
 
-    <div class="card">
-      <div class="card-label">📝 הדביקו את ההודעה ללקוח</div>
-      <textarea id="inputText" placeholder="הדביקו כאן את ההודעה ללקוח..." autofocus></textarea>
-    </div>
+    <div class="two-columns">
+      <!-- Left column: Ask the system -->
+      <div class="card" style="order: 2;">
+        <div class="ask-section">
+          <div class="card-label">🤖 שאלו את המערכת</div>
+          <div class="ask-row">
+            <input type="text" class="ask-input" id="askInput" placeholder="שעות פתיחה? כתובת סניף? מה לענות ללקוח?" dir="rtl">
+            <button class="ask-btn" id="askBtn" onclick="askQuestion()" disabled>
+              <span class="ask-btn-text">שאל</span>
+              <span class="spinner-sm"></span>
+            </button>
+          </div>
+          <div class="ask-answer" id="askAnswer">
+            <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
+            <div class="ask-answer-content" id="askAnswerText"></div>
+          </div>
+        </div>
+      </div>
 
-    <div class="card">
-      <div class="card-label">📱 פלטפורמה</div>
-      <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
-        <button class="gender-btn" onclick="selectPlatform('instagram', this)">
-          <span class="emoji">📸</span> אינסטגרם
+      <!-- Right column: Message input -->
+      <div style="display: flex; flex-direction: column; gap: 20px; order: 1;">
+        <div class="card">
+          <div class="card-label">📝 הדביקו את ההודעה ללקוח</div>
+          <textarea id="inputText" placeholder="הדביקו כאן את ההודעה ללקוח..." autofocus></textarea>
+        </div>
+
+        <div class="card">
+          <div class="card-label">📱 פלטפורמה</div>
+          <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
+            <button class="gender-btn" onclick="selectPlatform('instagram', this)">
+              <span class="emoji">📸</span> אינסטגרם
+            </button>
+            <button class="gender-btn" onclick="selectPlatform('formal', this)">
+              <span class="emoji">💼</span> וואטסאפ / CRM / ליד
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">👤 מגדר פנייה ללקוח</div>
+          <div class="gender-buttons">
+            <button class="gender-btn" onclick="selectGender('male', this)">
+              <span class="emoji">👨</span> פנייה לגבר
+            </button>
+            <button class="gender-btn" onclick="selectGender('female', this)">
+              <span class="emoji">👩</span> פנייה לאישה
+            </button>
+            <button class="gender-btn" onclick="selectGender('neutral', this)">
+              <span class="emoji">👤</span> ללא מגדר
+            </button>
+          </div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="correctText()" disabled>
+          <span class="btn-text">תקנו את הטקסט</span>
+          <span class="spinner"></span>
         </button>
-        <button class="gender-btn" onclick="selectPlatform('formal', this)">
-          <span class="emoji">💼</span> וואטסאפ / CRM / ליד
-        </button>
+        <div class="shortcut-hint">Ctrl+Enter לתיקון מהיר</div>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-label">👤 מגדר פנייה ללקוח</div>
-      <div class="gender-buttons">
-        <button class="gender-btn" onclick="selectGender('male', this)">
-          <span class="emoji">👨</span> פנייה לגבר
-        </button>
-        <button class="gender-btn" onclick="selectGender('female', this)">
-          <span class="emoji">👩</span> פנייה לאישה
-        </button>
-        <button class="gender-btn" onclick="selectGender('neutral', this)">
-          <span class="emoji">👤</span> ללא מגדר
-        </button>
-      </div>
-    </div>
-
-    <button class="submit-btn" id="submitBtn" onclick="correctText()" disabled>
-      <span class="btn-text">תקנו את הטקסט</span>
-      <span class="spinner"></span>
-    </button>
-    <div class="shortcut-hint">Ctrl+Enter לתיקון מהיר</div>
 
     <div class="error-msg" id="errorMsg"></div>
 
@@ -767,28 +735,6 @@
       <div class="actions">
         <button class="action-btn" id="copyBtn" onclick="copyResult()">📋 העתקה</button>
         <button class="action-btn" onclick="clearAll()">🔄 הודעה חדשה</button>
-      </div>
-    </div>
-
-    <div class="card suggestion-card" id="suggestionCard">
-      <div class="card-label">💡 המלצה לשיחה</div>
-      <div class="suggestion-box" id="suggestionBox"></div>
-    </div>
-
-    <div class="card">
-      <div class="ask-section">
-        <div class="card-label">🤖 שאלו את המערכת</div>
-        <div class="ask-row">
-          <input type="text" class="ask-input" id="askInput" placeholder="שעות פתיחה? כתובת סניף? מה לענות ללקוח?" dir="rtl">
-          <button class="ask-btn" id="askBtn" onclick="askQuestion()" disabled>
-            <span class="ask-btn-text">שאל</span>
-            <span class="spinner-sm"></span>
-          </button>
-        </div>
-        <div class="ask-answer" id="askAnswer">
-          <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
-          <div class="ask-answer-content" id="askAnswerText"></div>
-        </div>
       </div>
     </div>
 
@@ -1111,57 +1057,6 @@ ${text}`;
   ], 0.1, 2048);
 }
 
-async function callSuggestion(text, platform) {
-  const apiKey = getApiKey();
-  if (!apiKey) return null;
-
-  const platformContext = platform === 'instagram'
-    ? 'ההודעה מיועדת לאינסטגרם (טון חם וידידותי)'
-    : 'ההודעה מיועדת לוואטסאפ/CRM/ליד (טון רשמי ומקצועי)';
-
-  const prompt = `אתה יועץ שירות לקוחות של רשת אופטיקה "אופטיסטור".
-
-${SERVICE_GUIDELINES}
-
-קיבלת הודעה שנציג/ת עומד/ת לשלוח ללקוח.
-${platformContext}
-
-נתח את ההודעה ותן המלצה אחת קצרה וממוקדת - מה כדאי להוסיף או לשפר בשיחה.
-
-חשוב: השתמש רק בפרטי הקשר האמיתיים של אופטיסטור:
-- אתר: optistore.net
-- וואטסאפ: 050-9130555
-- טלפון: *2799 שלוחה 1
-- מייל: optistore@optistore.net
-
-דוגמאות להמלצות:
-- להוסיף קישור לדגם באתר optistore.net
-- להציע דגם חלופי אם מדובר בדגם חסר
-- להזמין את הלקוח/ה לסניף הקרוב
-- להציע להצטרף למועדון לקוחות
-- לבקש טלפון לחזרה אישית
-- להציע בדיקת ראייה חינם בסניף
-- להוסיף השוואת מחירים
-- להמליץ על דגם משלים (למשל משקפי שמש + ראייה)
-- להציע לפנות בוואטסאפ 050-9130555 או בטלפון *2799
-
-ענה בפורמט הזה בדיוק (3 שורות):
-שורה 1: כותרת קצרה של ההמלצה (עד 6 מילים)
-שורה 2: הסבר קצר למה (משפט אחד)
-שורה 3: דוגמה למשפט שהנציג/ת יכול/ה להוסיף (מוכן להעתקה)
-
-ההודעה של הנציג/ת:
-${text}`;
-
-  try {
-    return await callGroqRaw(apiKey, [
-      { role: 'system', content: 'אתה יועץ שירות לקוחות. ענה תמיד בדיוק 3 שורות: כותרת, הסבר, ודוגמה. בעברית בלבד.' },
-      { role: 'user', content: prompt }
-    ], 0.4, 512);
-  } catch {
-    return null;
-  }
-}
 
 // ==================== UI ====================
 
@@ -1202,37 +1097,10 @@ async function correctText() {
   document.getElementById('resultCard').classList.remove('visible');
 
   try {
-    // Run correction and suggestion in parallel
-    const [corrected, suggestion] = await Promise.all([
-      callGroq(text, selectedGender, selectedPlatform),
-      callSuggestion(text, selectedPlatform)
-    ]);
+    const corrected = await callGroq(text, selectedGender, selectedPlatform);
 
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
-
-    // Show suggestion
-    const suggestionCard = document.getElementById('suggestionCard');
-    const suggestionBox = document.getElementById('suggestionBox');
-    if (suggestion) {
-      const lines = suggestion.split('\n').filter(l => l.trim());
-      if (lines.length >= 2) {
-        const title = lines[0].replace(/^\d+[\.\)\-:\s]*/, '').trim();
-        const explanation = lines[1].replace(/^\d+[\.\)\-:\s]*/, '').trim();
-        const example = lines.length >= 3 ? lines.slice(2).join(' ').replace(/^\d+[\.\)\-:\s]*/, '').replace(/^["״"']|["״"']$/g, '').trim() : '';
-
-        let html = `<div class="tip-title">💡 ${title}</div>`;
-        html += `<div class="tip-text">${explanation}</div>`;
-        if (example) {
-          html += `<div class="tip-example" onclick="copySuggestion(this)">${example}</div>`;
-        }
-        suggestionBox.innerHTML = html;
-        suggestionCard.classList.add('visible');
-      }
-    } else {
-      suggestionCard.classList.remove('visible');
-    }
-
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
     errorEl.textContent = err.message || 'שגיאה בתיקון הטקסט';
@@ -1246,27 +1114,12 @@ async function correctText() {
 function clearAll() {
   document.getElementById('inputText').value = '';
   document.getElementById('resultCard').classList.remove('visible');
-  document.getElementById('suggestionCard').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
   selectedGender = null;
   selectedPlatform = null;
   document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('inputText').focus();
-}
-
-async function copySuggestion(el) {
-  const text = el.textContent;
-  try {
-    await navigator.clipboard.writeText(text);
-    el.classList.add('copied-tip');
-    setTimeout(() => el.classList.remove('copied-tip'), 2000);
-  } catch {
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-  }
 }
 
 async function copyResult() {
