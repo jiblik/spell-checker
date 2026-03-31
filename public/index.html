@@ -337,13 +337,17 @@
       border: 1px solid rgba(139, 92, 246, 0.25);
       border-radius: 12px;
       padding: 16px;
-      padding-left: 80px;
       font-size: 15px;
       line-height: 1.8;
       direction: rtl;
       text-align: right;
       white-space: pre-wrap;
       position: relative;
+    }
+
+    .ask-answer-content {
+      display: block;
+      margin-left: 70px;
     }
 
     .ask-answer.visible { display: block; }
@@ -695,7 +699,7 @@
         </div>
         <div class="ask-answer" id="askAnswer">
           <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
-          <span id="askAnswerText"></span>
+          <div class="ask-answer-content" id="askAnswerText"></div>
         </div>
       </div>
     </div>
@@ -1112,6 +1116,7 @@ ${SERVICE_GUIDELINES}
 אם השאלה היא על מה לענות ללקוח - תן תשובה מוכנה שהנציג יכול להעתיק ולשלוח.
 אם השאלה היא על מידע (כתובת, שעות, טלפון) - תן את המידע המדויק.
 אל תמציא מידע שלא נמצא במידע למעלה.
+אל תעטוף את התשובה במרכאות. אל תוסיף כותרות. פשוט כתוב את התשובה ישירות.
 
 השאלה של הנציג/ה:
 ${question}`;
