@@ -217,6 +217,23 @@
     }
 
 
+    /* Coaching card */
+    .coaching-card { display: none; }
+    .coaching-card.visible { display: block; }
+
+    .coaching-box {
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      border-radius: 12px;
+      padding: 16px;
+      direction: rtl;
+      text-align: right;
+      line-height: 1.8;
+      font-size: 14px;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+
     /* Ask section */
     .ask-section {
       padding-top: 0;
@@ -743,6 +760,11 @@
       </div>
     </div>
 
+    <div class="card coaching-card" id="coachingCard">
+      <div class="card-label">🎯 פידבק מהמערכת</div>
+      <div class="coaching-box" id="coachingBox"></div>
+    </div>
+
   </div>
 
 <script>
@@ -1029,7 +1051,7 @@ async function callGroq(text, gender, platform, customerContext) {
   const platformInstruction = PLATFORM_PROMPTS[platform];
 
   const contextBlock = customerContext
-    ? `\nהקונטקסט - מה הלקוח כתב/שאל:\n"${customerContext}"\n\nחשוב: התאם את התשובה המתוקנת כך שתענה בצורה הטובה ביותר על מה שהלקוח שאל. אם הנציג לא ענה על חלק מהשאלה - הוסף תשובה מתאימה לפי המידע שיש לך.\n`
+    ? `\nהקונטקסט - מה הלקוח כתב/שאל:\n"${customerContext}"\n\nחשוב מאוד:\n- קרא בעיון מה הלקוח שאל או ביקש\n- וודא שהתשובה המתוקנת עונה על כל מה שהלקוח שאל\n- אם הנציג לא ענה על חלק מהשאלה - הוסף תשובה מתאימה לפי המידע שיש לך\n- אם הלקוח שאל על סניף - וודא שיש כתובת, שעות, וקישורי ניווט\n- אם הלקוח שאל על מחיר - וודא שהתשובה כוללת מחיר או הפנייה למחיר\n- אם הלקוח שאל שאלה והנציג ענה על משהו אחר - תקן את התשובה כך שתענה על מה שנשאל\n`
     : '';
 
   const prompt = `אתה עורך טקסט מקצועי בעברית עבור שירות לקוחות של רשת אופטיקה "אופטיסטור".
@@ -1076,6 +1098,44 @@ ${text}`;
 }
 
 
+async function analyzeResponse(agentText, customerText) {
+  const apiKey = getApiKey();
+  if (!apiKey || !customerText) return null;
+
+  const prompt = `אתה מאמן שירות לקוחות של רשת אופטיקה "אופטיסטור".
+
+${SERVICE_GUIDELINES}
+
+הלקוח כתב:
+"${customerText}"
+
+הנציג/ה רוצה לענות:
+"${agentText}"
+
+נתח את התשובה של הנציג/ה ביחס למה שהלקוח שאל:
+
+1. האם התשובה עונה על מה שהלקוח שאל? (כן/חלקית/לא)
+2. מה חסר או לא נכון בתשובה?
+3. מה התשובה האידיאלית שהנציג/ה צריך/ה לתת?
+
+כללי תשובה:
+- אם התשובה טובה ועונה על הכל - כתוב רק: "✅ תשובה מצוינת!"
+- אם יש מה לשפר - תן פידבק קצר וברור בעברית, בטון חברי ומעודד (כמו קולגה ותיק)
+- אם התשובה לא רלוונטית למה שנשאל - הסבר מה הלקוח באמת רוצה ומה צריך לענות
+- תמיד תן דוגמה לתשובה טובה יותר אם יש מה לשפר
+- שים קישורים תמיד בשורה נפרדת עם תווית בעברית
+- לא לערבב עברית ואנגלית באותה שורה`;
+
+  try {
+    return await callGroqRaw(apiKey, [
+      { role: 'system', content: 'אתה מאמן שירות לקוחות חברי ומעודד. עוזר לנציגים להשתפר. ענה בעברית בלבד. תהיה קצר וממוקד.' },
+      { role: 'user', content: prompt }
+    ], 0.3, 1024);
+  } catch {
+    return null;
+  }
+}
+
 // ==================== UI ====================
 
 let selectedGender = null;
@@ -1113,13 +1173,30 @@ async function correctText() {
   btn.disabled = true;
   errorEl.classList.remove('visible');
   document.getElementById('resultCard').classList.remove('visible');
+  document.getElementById('coachingCard').classList.remove('visible');
 
   try {
     const customerContext = document.getElementById('contextText').value.trim();
-    const corrected = await callGroq(text, selectedGender, selectedPlatform, customerContext);
+
+    // Run correction and coaching analysis in parallel
+    const [corrected, coaching] = await Promise.all([
+      callGroq(text, selectedGender, selectedPlatform, customerContext),
+      customerContext ? analyzeResponse(text, customerContext) : Promise.resolve(null)
+    ]);
 
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
+
+    // Show coaching feedback if there's context and feedback
+    const coachingCard = document.getElementById('coachingCard');
+    const coachingBox = document.getElementById('coachingBox');
+    if (coaching) {
+      const escaped = coaching.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const withLinks = escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent);word-break:break-all;">$1</a>');
+      coachingBox.innerHTML = withLinks;
+      coachingCard.classList.add('visible');
+    }
+
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
     errorEl.textContent = err.message || 'שגיאה בתיקון הטקסט';
@@ -1134,6 +1211,7 @@ function clearAll() {
   document.getElementById('contextText').value = '';
   document.getElementById('inputText').value = '';
   document.getElementById('resultCard').classList.remove('visible');
+  document.getElementById('coachingCard').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
   selectedGender = null;
   selectedPlatform = null;
