@@ -688,8 +688,13 @@
       <!-- Right column: Message input -->
       <div style="display: flex; flex-direction: column; gap: 20px; order: 1;">
         <div class="card">
+          <div class="card-label">💬 מה הלקוח שאל/כתב?</div>
+          <textarea id="contextText" placeholder="הדביקו כאן את הודעת הלקוח כדי שהמערכת תתאים את התשובה..." style="min-height: 80px;"></textarea>
+        </div>
+
+        <div class="card">
           <div class="card-label">📝 הדביקו את ההודעה ללקוח</div>
-          <textarea id="inputText" placeholder="הדביקו כאן את ההודעה ללקוח..." autofocus></textarea>
+          <textarea id="inputText" placeholder="הדביקו כאן את התשובה שלכם ללקוח..." autofocus></textarea>
         </div>
 
         <div class="card">
@@ -1013,7 +1018,7 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
   return result.trim();
 }
 
-async function callGroq(text, gender, platform) {
+async function callGroq(text, gender, platform, customerContext) {
   const apiKey = getApiKey();
   if (!apiKey) {
     showSetup();
@@ -1023,12 +1028,16 @@ async function callGroq(text, gender, platform) {
   const genderInstruction = GENDER_PROMPTS[gender];
   const platformInstruction = PLATFORM_PROMPTS[platform];
 
+  const contextBlock = customerContext
+    ? `\nהקונטקסט - מה הלקוח כתב/שאל:\n"${customerContext}"\n\nחשוב: התאם את התשובה המתוקנת כך שתענה בצורה הטובה ביותר על מה שהלקוח שאל. אם הנציג לא ענה על חלק מהשאלה - הוסף תשובה מתאימה לפי המידע שיש לך.\n`
+    : '';
+
   const prompt = `אתה עורך טקסט מקצועי בעברית עבור שירות לקוחות של רשת אופטיקה "אופטיסטור".
 
 תפקידך: לקבל טקסט של נציג/ת שירות ולהחזיר גרסה מתוקנת ומשופרת.
 
 ${SERVICE_GUIDELINES}
-
+${contextBlock}
 כללי עריכה:
 1. תקן שגיאות כתיב ודקדוק (כולל ה' הידיעה חסרה, אותיות כפולות וכו')
 2. שפר ניסוח כשהוא לא ברור או לא מקצועי
@@ -1097,7 +1106,8 @@ async function correctText() {
   document.getElementById('resultCard').classList.remove('visible');
 
   try {
-    const corrected = await callGroq(text, selectedGender, selectedPlatform);
+    const customerContext = document.getElementById('contextText').value.trim();
+    const corrected = await callGroq(text, selectedGender, selectedPlatform, customerContext);
 
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
@@ -1112,6 +1122,7 @@ async function correctText() {
 }
 
 function clearAll() {
+  document.getElementById('contextText').value = '';
   document.getElementById('inputText').value = '';
   document.getElementById('resultCard').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
