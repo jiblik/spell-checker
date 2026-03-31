@@ -879,67 +879,158 @@ if (!getApiKey()) {
   document.getElementById('setupOverlay').classList.add('hidden');
 }
 
-// ==================== GEMINI API ====================
+// ==================== GOOGLE SHEETS CONNECTION ====================
 
-const GENDER_PROMPTS = {
+const SHEET_ID = '1hRpRkrRW5sNZz7Rr0hyJoTaH5byfP0Zd';
+const SHEETS_BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
+
+function parseCSV(csv) {
+  const rows = [];
+  const lines = csv.split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const row = [];
+    let inQuotes = false, cell = '';
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i+1] === '"') { cell += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { cell += ch; }
+      } else {
+        if (ch === '"') { inQuotes = true; }
+        else if (ch === ',') { row.push(cell.trim()); cell = ''; }
+        else { cell += ch; }
+      }
+    }
+    row.push(cell.trim());
+    rows.push(row);
+  }
+  return rows;
+}
+
+async function fetchSheet(name) {
+  const res = await fetch(SHEETS_BASE + encodeURIComponent(name));
+  if (!res.ok) throw new Error(`Failed to load sheet: ${name}`);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+// Data containers (will be filled from Sheets)
+let GENDER_PROMPTS = {
   male: 'הפנייה ללקוח צריכה להיות בלשון זכר (אתה, שלך, מוזמן, תרשום, תשלח וכו\')',
   female: 'הפנייה ללקוח צריכה להיות בלשון נקבה (את, שלך, מוזמנת, תרשמי, תשלחי וכו\')',
   neutral: 'השתמש בפנייה ניטרלית ללא מגדר (ניתן, אפשר, מוזמן/ת, ניצור קשר וכו\')',
 };
 
-const PLATFORM_PROMPTS = {
+let PLATFORM_PROMPTS = {
   instagram: 'הטון צריך להיות חם, עממי וידידותי - כמו שיחה בין חברים. אפשר להשתמש באימוג\'י כשמתאים. קצר וקולע. אפשר "היי" ו"אהובה" וכו\'.',
   formal: 'הטון צריך להיות מנומס ומקצועי אך לא קר. פנייה מכובדת (שלום, היי + שם). בלי "אהובה", "מותק", "נשמה". בלי אימוג\'י מיותרים. ניסוח עסקי ברור ומסודר.',
 };
 
-const OPTISTORE_INFO = {
+let OPTISTORE_INFO = {
   whatsapp: '050-9130555',
   phone: '*2799 שלוחה 1',
   email: 'optistore@optistore.net',
   website: 'https://optistore.net',
 };
 
-const SERVICE_GUIDELINES = `
-מידע על אופטיסטור:
-- אתר: optistore.net
-- וואטסאפ: 050-9130555
-- טלפון: *2799 שלוחה 1
-- מייל: optistore@optistore.net
+let SERVICE_GUIDELINES = '';
+
+async function loadFromSheets() {
+  try {
+    const [contacts, branches, dos, donts, platforms, genders, editing, askRules] = await Promise.all([
+      fetchSheet('פרטי קשר'),
+      fetchSheet('סניפים'),
+      fetchSheet('לעשות'),
+      fetchSheet('לא לעשות'),
+      fetchSheet('טון לפי פלטפורמה'),
+      fetchSheet('מגדר'),
+      fetchSheet('כללי עריכת טקסט'),
+      fetchSheet('שאלו את המערכת'),
+    ]);
+
+    // Parse contacts (skip header)
+    const contactMap = {};
+    for (let i = 1; i < contacts.length; i++) {
+      contactMap[contacts[i][0]] = contacts[i][1];
+    }
+    OPTISTORE_INFO = {
+      whatsapp: contactMap['וואטסאפ'] || OPTISTORE_INFO.whatsapp,
+      phone: contactMap['טלפון'] || OPTISTORE_INFO.phone,
+      email: contactMap['מייל'] || OPTISTORE_INFO.email,
+      website: contactMap['אתר'] || OPTISTORE_INFO.website,
+    };
+
+    // Parse branches
+    let branchText = '';
+    for (let i = 1; i < branches.length; i++) {
+      const [name, address, phone, hours, notes, waze, moovit] = branches[i];
+      let line = `  * ${name} - ${address} | טלפון: ${phone} | ${hours}`;
+      if (notes) line += ` | ${notes}`;
+      if (waze) line += ` | Waze: ${waze}`;
+      if (moovit) line += ` | Moovit: ${moovit}`;
+      branchText += line + '\n';
+    }
+
+    // Parse do's
+    const dosText = dos.slice(1).map(r => `- ${r[1]}`).join('\n');
+
+    // Parse don'ts
+    const dontsText = donts.slice(1).map(r => `- ${r[1]}`).join('\n');
+
+    // Parse platforms
+    for (let i = 1; i < platforms.length; i++) {
+      const [plat, instruction] = platforms[i];
+      if (plat.includes('אינסטגרם')) PLATFORM_PROMPTS.instagram = instruction;
+      if (plat.includes('וואטסאפ') || plat.includes('CRM')) PLATFORM_PROMPTS.formal = instruction;
+    }
+
+    // Parse gender
+    const genderMap = { 'זכר': 'male', 'נקבה': 'female', 'ניטרלי': 'neutral' };
+    for (let i = 1; i < genders.length; i++) {
+      const key = genderMap[genders[i][0]];
+      if (key) GENDER_PROMPTS[key] = genders[i][1];
+    }
+
+    // Build SERVICE_GUIDELINES
+    const pagesUrl = contactMap['דף סניפים'] || 'optistore.net/index.php?option=com_content&view=article&id=3&Itemid=980';
+
+    SERVICE_GUIDELINES = `מידע על אופטיסטור:
+- אתר: ${OPTISTORE_INFO.website}
+- וואטסאפ: ${OPTISTORE_INFO.whatsapp}
+- טלפון: ${OPTISTORE_INFO.phone}
+- מייל: ${OPTISTORE_INFO.email}
 - רשת אופטיקה בפריסה ארצית
 - סניפים:
-  * תל אביב - נירים 3, בית קנדה | טלפון: 03-7570329 | א'-ה' 09:30-18:00, שישי 09:30-14:00 | חניה חינם בקומה 3- | Waze: https://tinyurl.com/optistore-tlv | Moovit: https://tinyurl.com/moovit-optistoretlv
-  * גבעתיים - אריאל שרון 10, מתחם היי פארק | טלפון: 03-7570327 | א'-ה' 10:00-16:00, שישי 10:00-13:45 | Waze: https://tinyurl.com/optistore-givatayim | Moovit: https://tinyurl.com/moovit-optistoregivatayim
-  * ראשון לציון - דוד סחרוב 21, קניון הזהב | טלפון: 03-5351260 | א'-ה' 09:30-20:00, שישי 09:30-14:30 | Waze: https://tinyurl.com/optistore-rishon | Moovit: https://tinyurl.com/moovit-optistorerishon
-  * חיפה - ההסתדרות 55, קניון לב המפרץ | טלפון: 04-6010620 | א'-ה' 09:30-19:30, שישי 09:00-14:30 | Waze: https://tinyurl.com/optistore-haifa | Moovit: https://tinyurl.com/moovit-optistorehaifa
-  * ירושלים - התעשייה 8, תלפיות | טלפון: 02-6667195 | א'-ה' 09:30-19:00, שישי 09:00-14:00 | Waze: https://tinyurl.com/optistore-jlm | Moovit: https://tinyurl.com/moovit-optistorejlm
-  * אילת - זעת אפיך 7 | טלפון: 03-9130555 שלוחה 5 | א'-ו' 10:00-14:00 | Waze: https://tinyurl.com/optistore-eilat | Moovit: https://tinyurl.com/moovit-optistoreeilat
-- דף סניפים באתר: optistore.net/index.php?option=com_content&view=article&id=3&Itemid=980
+${branchText}- דף סניפים באתר: ${pagesUrl}
 - כששואלים על כתובת סניף, תמיד להוסיף גם קישורי ניווט (Waze ו-Moovit)
 - אפשר להזמין אונליין דרך האתר עם משלוח עד הבית
 
 כללי שירות לקוחות של אופטיסטור (לעשות):
-- לענות בטון חם, אישי ולבבי עם אימוג'י כשמתאים
-- לסיים כל תשובה בהזמנה לפנות שוב (נשמח לעזור בכל שאלה נוספת)
-- תמיד לתת מחיר כשנשאלים ולהציג מחיר לפני ואחרי הנחה
-- להתחיל במה שיש במלאי ורק אחר כך להתייחס למה שאין
-- להציע אלטרנטיבות כשמשהו חסר ולשאול מה הסגנון שמחפשים
-- לפנות ללקוח בשם הנכון ובלשון מגדרית נכונה
-- לעודד המשך שיחה ולהזמין לסניף או לאתר
-- להדגיש שאנחנו רשת בפריסה ארצית ושאפשר להזמין אונליין
-- לבקש טלפון מהלקוח כדי לחזור אליו במקום לשלוח אותו למוקד
+${dosText}
 
 כללי שירות לקוחות של אופטיסטור (לא לעשות):
-- לא לכתוב עם שגיאות כתיב
-- לא לכתוב הודעות ארוכות מדי, לשמור על קצר וברור
-- לא לענות בצורה קרה או מנפנפת
-- לא להשתמש במילה "זול" אלא "מחירים אטרקטיביים" או "הכי טובים"
-- לא לבטל קופונים ישירות, לתת הרגשה שמועדון הלקוחות זה כמו קופון קבוע
-- לא להציף בפרטים על מועדון בהתחלה ולא להזכיר עלויות הצטרפות בשלב ראשון
-- לא לשלוח לקוחות למתחרים, להציע שיבואו אלינו
-- לא להשתמש במונחים מקצועיים בלי להסביר אותם
-- לא להיות מסחרי מדי, לדבר כמו חבר ולא כמו פרסומת
-- לא להתחיל תשובה עם "לצערי" או עם מה שאין
-`;
+${dontsText}`;
+
+    console.log('✅ Data loaded from Google Sheets');
+    return true;
+  } catch (err) {
+    console.warn('⚠️ Could not load from Sheets, using defaults:', err.message);
+    return false;
+  }
+}
+
+// Set defaults until Sheets loads
+SERVICE_GUIDELINES = `מידע על אופטיסטור:
+- אתר: optistore.net
+- וואטסאפ: 050-9130555
+- טלפון: *2799 שלוחה 1
+- מייל: optistore@optistore.net
+- רשת אופטיקה בפריסה ארצית`;
+
+// Load data from Sheets on startup
+loadFromSheets();
 
 async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
