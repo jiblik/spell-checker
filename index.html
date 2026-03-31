@@ -186,6 +186,7 @@
     }
 
     .gender-btn .emoji { font-size: 24px; }
+    .gender-btn .btn-logo { width: 28px; height: 28px; object-fit: contain; }
     .gender-btn:hover { border-color: var(--accent); color: var(--text); }
 
     .gender-btn.active {
@@ -768,16 +769,16 @@
           <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן קישור..." dir="rtl" style="text-align: right; margin-bottom: 12px; width: 100%;">
           <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
             <button class="gender-btn utm-btn" onclick="buildUTM('instagram_story', this)">
-              <span class="emoji">📖</span> אינסטגרם סטורי
+              <img src="instagram-logo.png" class="btn-logo"> אינסטגרם סטורי
             </button>
             <button class="gender-btn utm-btn" onclick="buildUTM('instagram_dm', this)">
-              <span class="emoji">💬</span> אינסטגרם DM
+              <img src="instagram-logo.png" class="btn-logo"> אינסטגרם DM
             </button>
             <button class="gender-btn utm-btn" onclick="buildUTM('facebook_dm', this)">
-              <span class="emoji">💬</span> פייסבוק DM
+              <img src="facebook-logo.png" class="btn-logo"> פייסבוק DM
             </button>
             <button class="gender-btn utm-btn" onclick="buildUTM('whatsapp', this)">
-              <span class="emoji">📱</span> וואטסאפ
+              <img src="whatsapp-logo.png" class="btn-logo"> וואטסאפ
             </button>
           </div>
           <div class="utm-result" id="utmResult">
