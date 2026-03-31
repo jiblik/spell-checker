@@ -896,7 +896,7 @@
       <div class="login-sub">בחרו את השם שלכם והכניסו סיסמה</div>
       <select id="loginUser">
         <option value="">בחרו משתמש...</option>
-        <option value="igor">איגור (מנהל)</option>
+        <option value="igor">איגור</option>
         <option value="dudi">דודי</option>
         <option value="gil">גיל</option>
         <option value="ori">אורי</option>
@@ -987,6 +987,7 @@
       <div class="card">
         <div class="dashboard-header">
           <h2>📋 היסטוריית תיקונים</h2>
+          <button class="action-btn" onclick="exportToExcel()" style="flex:none; padding: 8px 16px; font-size: 13px;">📥 ייצוא לאקסל</button>
         </div>
         <div class="dashboard-filters">
           <select id="filterAgent" onchange="filterLogs()">
@@ -1139,13 +1140,13 @@
 // ==================== USER SYSTEM ====================
 
 const USERS = {
-  igor:  { name: 'איגור', pass: 'Optistore2525@', role: 'admin' },
-  dudi:  { name: 'דודי', pass: 'Opti2525', role: 'viewer' },
-  gil:   { name: 'גיל', pass: 'Opti2525', role: 'viewer' },
-  ori:   { name: 'אורי', pass: 'Opti2525', role: 'viewer' },
-  roi:   { name: 'רועי', pass: 'Opti123', role: 'agent' },
-  tania: { name: 'טניה', pass: 'Opti123', role: 'agent' },
-  rivka: { name: 'רבקה', pass: 'Opti123', role: 'agent' },
+  igor:  { name: 'איגור', pass: 'Igor2525', role: 'admin', gender: null },
+  dudi:  { name: 'דודי', pass: 'Dudi2525', role: 'admin', gender: null },
+  gil:   { name: 'גיל', pass: 'Gil2525', role: 'admin', gender: null },
+  ori:   { name: 'אורי', pass: 'Ori2525', role: 'viewer', gender: null },
+  roi:   { name: 'רועי', pass: 'Roi2525', role: 'agent+viewer', gender: 'male' },
+  tania: { name: 'טניה', pass: 'Tanya2525', role: 'agent', gender: 'female' },
+  rivka: { name: 'רבקה', pass: 'Rebecca2525', role: 'agent', gender: 'female' },
 };
 
 const USER_KEY = 'spell-checker-user';
@@ -1190,30 +1191,48 @@ function doLogout() {
 function applyLogin() {
   document.getElementById('loginOverlay').classList.add('hidden');
 
+  const canTool = ['admin', 'agent', 'agent+viewer'].includes(currentUser.role);
+  const canView = ['admin', 'viewer', 'agent+viewer'].includes(currentUser.role);
+
   // Show user badge
   const badge = document.getElementById('userBadge');
-  const roleLabel = currentUser.role === 'admin' ? 'מנהל' : currentUser.role === 'viewer' ? 'בקרה' : 'נציג';
-  document.getElementById('userBadgeName').textContent = `${currentUser.name} (${roleLabel})`;
+  const roleLabels = { admin: 'מנהל', viewer: 'בקרה', agent: 'נציג/ה', 'agent+viewer': 'נציג + בקרה' };
+  document.getElementById('userBadgeName').textContent = `${currentUser.name} (${roleLabels[currentUser.role] || ''})`;
   badge.style.display = 'flex';
 
   const toolSection = document.getElementById('toolSection');
   const dashboardSection = document.getElementById('dashboardSection');
   const tabButtons = document.getElementById('tabButtons');
 
-  if (currentUser.role === 'admin') {
-    // Admin sees tabs: tool + dashboard
+  // Auto-select gender if user has one set
+  if (currentUser.gender && canTool) {
+    setTimeout(() => {
+      const genderBtns = document.querySelectorAll('.gender-buttons')[2]; // 3rd group = gender
+      if (genderBtns) {
+        const btns = genderBtns.querySelectorAll('.gender-btn');
+        const genderMap = { male: 0, female: 1, neutral: 2 };
+        const idx = genderMap[currentUser.gender];
+        if (idx !== undefined && btns[idx]) {
+          btns[idx].click();
+        }
+      }
+    }, 500);
+  }
+
+  if (canTool && canView) {
+    // Both: show tabs
     tabButtons.style.display = 'flex';
     toolSection.style.display = 'block';
     dashboardSection.classList.remove('visible');
     loadLogs();
-  } else if (currentUser.role === 'viewer') {
-    // Viewer sees only dashboard
+  } else if (canView) {
+    // Viewer only: dashboard
     tabButtons.style.display = 'none';
     toolSection.style.display = 'none';
     dashboardSection.classList.add('visible');
     loadLogs();
   } else {
-    // Agent sees only tool
+    // Agent only: tool
     tabButtons.style.display = 'none';
     toolSection.style.display = 'block';
     dashboardSection.classList.remove('visible');
@@ -1322,6 +1341,34 @@ function renderLogs(logs) {
 
 function filterLogs() { loadLogs(); }
 
+function exportToExcel() {
+  const logs = getLocalLogs();
+  if (logs.length === 0) { alert('אין נתונים לייצוא'); return; }
+
+  // Build CSV with BOM for Hebrew support in Excel
+  const BOM = '\uFEFF';
+  const headers = ['תאריך', 'נציג/ה', 'פלטפורמה', 'הלקוח כתב', 'הנציג כתב', 'המערכת תיקנה'];
+  const rows = logs.map(l => [
+    l.date || '',
+    l.agent || '',
+    l.platform || '',
+    (l.context || '').replace(/"/g, '""'),
+    (l.original || '').replace(/"/g, '""'),
+    (l.corrected || '').replace(/"/g, '""'),
+  ]);
+
+  let csv = BOM + headers.map(h => `"${h}"`).join(',') + '\n';
+  csv += rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `optistore-logs-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ==================== THEME ====================
 
 const THEME_KEY = 'spell-checker-theme';
@@ -1359,7 +1406,7 @@ function saveApiKey() {
   document.getElementById('setupOverlay').classList.add('hidden');
 }
 
-const SETTINGS_PASSWORD = 'Optistore2525@';
+const SETTINGS_PASSWORD = 'Igor2525';
 
 function openPwdModal() {
   document.getElementById('pwdInput').value = '';
