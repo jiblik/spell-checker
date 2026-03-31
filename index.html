@@ -1559,39 +1559,45 @@ SERVICE_GUIDELINES = `מידע על אופטיסטור:
 // Load data from Sheets on startup
 loadFromSheets();
 
-async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      temperature,
-      max_tokens: maxTokens
-    })
-  });
+async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        temperature,
+        max_tokens: maxTokens
+      })
+    });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const msg = err.error?.message || '';
-    if (res.status === 401) {
-      localStorage.removeItem(STORAGE_KEY);
-      showSetup();
-      throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err.error?.message || '';
+      if (res.status === 401) {
+        localStorage.removeItem(STORAGE_KEY);
+        showSetup();
+        throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
+      }
+      if (res.status === 429) {
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, attempt * 2000));
+          continue;
+        }
+        throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
+      }
+      throw new Error(msg || 'שגיאה בתקשורת. נסו שוב.');
     }
-    if (res.status === 429) {
-      throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
-    }
-    throw new Error(msg || 'שגיאה בתקשורת. נסו שוב.');
+
+    const data = await res.json();
+    const result = data.choices?.[0]?.message?.content;
+    if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
+    return result.trim();
   }
-
-  const data = await res.json();
-  const result = data.choices?.[0]?.message?.content;
-  if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
-  return result.trim();
 }
 
 async function callGroq(text, gender, platform, customerContext) {
