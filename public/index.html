@@ -58,16 +58,22 @@
       border-bottom: 1px solid var(--border);
     }
 
+    .header-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 8px;
+      border-radius: 50%;
+    }
+
     .header h1 {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
+      margin-bottom: 0;
     }
-
-    .header p { color: var(--text-muted); font-size: 14px; font-weight: 300; }
 
     .container {
       width: 100%;
@@ -619,8 +625,8 @@
   <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
 
   <div class="header">
-    <h1>אופטיסטור ללא שגיאות כתיב</h1>
-    <p>תיקון שגיאות כתיב ודקדוק באמצעות AI</p>
+    <img src="logo.png" alt="אופטיסטור" class="header-logo" id="headerLogo">
+    <h1>העוזר האישי של אופטיסטור</h1>
   </div>
 
   <div class="container">
@@ -781,13 +787,14 @@ const SERVICE_GUIDELINES = `
 - מייל: optistore@optistore.net
 - רשת אופטיקה בפריסה ארצית
 - סניפים:
-  * תל אביב - נירים 3, בית קנדה | טלפון: 03-7570329 | א'-ה' 09:30-18:00, שישי 09:30-14:00 | חניה חינם בקומה 3-
-  * גבעתיים - אריאל שרון 10, מתחם היי פארק | טלפון: 03-7570327 | א'-ה' 10:00-16:00, שישי 10:00-13:45
-  * ראשון לציון - דוד סחרוב 21, קניון הזהב | טלפון: 03-5351260 | א'-ה' 09:30-20:00, שישי 09:30-14:30
-  * חיפה - ההסתדרות 55, קניון לב המפרץ | טלפון: 04-6010620 | א'-ה' 09:30-19:30, שישי 09:00-14:30
-  * ירושלים - התעשייה 8, תלפיות | טלפון: 02-6667195 | א'-ה' 09:30-19:00, שישי 09:00-14:00
-  * אילת - זעת אפיך 7 | טלפון: 03-9130555 שלוחה 5 | א'-ו' 10:00-14:00
+  * תל אביב - נירים 3, בית קנדה | טלפון: 03-7570329 | א'-ה' 09:30-18:00, שישי 09:30-14:00 | חניה חינם בקומה 3- | Waze: https://tinyurl.com/optistore-tlv | Moovit: https://tinyurl.com/moovit-optistoretlv
+  * גבעתיים - אריאל שרון 10, מתחם היי פארק | טלפון: 03-7570327 | א'-ה' 10:00-16:00, שישי 10:00-13:45 | Waze: https://tinyurl.com/optistore-givatayim | Moovit: https://tinyurl.com/moovit-optistoregivatayim
+  * ראשון לציון - דוד סחרוב 21, קניון הזהב | טלפון: 03-5351260 | א'-ה' 09:30-20:00, שישי 09:30-14:30 | Waze: https://tinyurl.com/optistore-rishon | Moovit: https://tinyurl.com/moovit-optistorerishon
+  * חיפה - ההסתדרות 55, קניון לב המפרץ | טלפון: 04-6010620 | א'-ה' 09:30-19:30, שישי 09:00-14:30 | Waze: https://tinyurl.com/optistore-haifa | Moovit: https://tinyurl.com/moovit-optistorehaifa
+  * ירושלים - התעשייה 8, תלפיות | טלפון: 02-6667195 | א'-ה' 09:30-19:00, שישי 09:00-14:00 | Waze: https://tinyurl.com/optistore-jlm | Moovit: https://tinyurl.com/moovit-optistorejlm
+  * אילת - זעת אפיך 7 | טלפון: 03-9130555 שלוחה 5 | א'-ו' 10:00-14:00 | Waze: https://tinyurl.com/optistore-eilat | Moovit: https://tinyurl.com/moovit-optistoreeilat
 - דף סניפים באתר: optistore.net/index.php?option=com_content&view=article&id=3&Itemid=980
+- כששואלים על כתובת סניף, תמיד להוסיף גם קישורי ניווט (Waze ו-Moovit)
 - אפשר להזמין אונליין דרך האתר עם משלוח עד הבית
 
 כללי שירות לקוחות של אופטיסטור (לעשות):
