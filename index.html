@@ -1117,6 +1117,16 @@ ${SERVICE_GUIDELINES}
 אל תמציא מידע שלא נמצא במידע למעלה.
 אל תעטוף את התשובה במרכאות. אל תוסיף כותרות. פשוט כתוב את התשובה ישירות.
 
+כללי עיצוב תשובה:
+- כשיש קישורים (Waze, Moovit, אתר) - תמיד שים כל קישור בשורה נפרדת משלו
+- קישורים תמיד צריכים להיות בשורה נפרדת עם תווית בעברית לפני הקישור, למשל:
+  ניווט בוויז:
+  https://tinyurl.com/optistore-tlv
+  ניווט במוביט:
+  https://tinyurl.com/moovit-optistoretlv
+- לא לערבב עברית ואנגלית באותה שורה
+- לשמור על מבנה נקי וקריא
+
 השאלה של הנציג/ה:
 ${question}`;
 
@@ -1126,7 +1136,10 @@ ${question}`;
       { role: 'user', content: prompt }
     ], 0.3, 1024);
 
-    answerText.textContent = answer;
+    // Make URLs clickable
+    const escaped = answer.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const withLinks = escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent);word-break:break-all;">$1</a>');
+    answerText.innerHTML = withLinks;
     answerEl.classList.add('visible');
     answerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
