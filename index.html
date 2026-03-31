@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>אופטיסטור - ללא שגיאות כתיב</title>
+  <title>העוזר האישי של אופטיסטור</title>
+  <link rel="icon" href="logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -102,6 +103,20 @@
       padding: 24px;
       border: 1px solid var(--border);
     }
+
+    /* Color coding for sections */
+    .card-blue { border-top: 3px solid #3b82f6; }
+    .card-blue .card-label { color: #3b82f6; }
+
+    .card-purple { border-top: 3px solid #8b5cf6; }
+    .card-purple .card-label { color: #8b5cf6; }
+
+    .card-emerald { border-top: 3px solid #10b981; }
+    .card-emerald .card-label { color: #10b981; }
+
+    [data-theme="light"] .card-blue .card-label { color: #2563eb; }
+    [data-theme="light"] .card-purple .card-label { color: #7c3aed; }
+    [data-theme="light"] .card-emerald .card-label { color: #059669; }
 
     .card-label {
       font-size: 13px;
@@ -716,7 +731,7 @@
     <div class="two-columns">
       <!-- Left column: Ask + UTM -->
       <div style="display: flex; flex-direction: column; gap: 20px; order: 2;">
-        <div class="card">
+        <div class="card card-purple">
           <div class="ask-section">
             <div class="card-label">🤖 שאלו את המערכת</div>
             <div class="ask-row">
@@ -733,7 +748,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-emerald">
           <div class="card-label">🔗 בונה קישורים עם UTM</div>
           <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן קישור..." dir="rtl" style="text-align: right; margin-bottom: 12px; width: 100%;">
           <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
@@ -759,17 +774,17 @@
 
       <!-- Right column: Message input -->
       <div style="display: flex; flex-direction: column; gap: 20px; order: 1;">
-        <div class="card">
+        <div class="card card-blue">
           <div class="card-label">💬 מה הלקוח שאל/כתב?</div>
           <textarea id="contextText" placeholder="הדביקו כאן את הודעת הלקוח כדי שהמערכת תתאים את התשובה..." style="min-height: 80px;"></textarea>
         </div>
 
-        <div class="card">
+        <div class="card card-blue">
           <div class="card-label">📝 הדביקו את ההודעה ללקוח</div>
           <textarea id="inputText" placeholder="הדביקו כאן את התשובה שלכם ללקוח..." autofocus></textarea>
         </div>
 
-        <div class="card">
+        <div class="card card-blue">
           <div class="card-label">📱 פלטפורמה</div>
           <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
             <button class="gender-btn" onclick="selectPlatform('instagram', this)">
@@ -781,7 +796,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-blue">
           <div class="card-label">👤 מגדר פנייה ללקוח</div>
           <div class="gender-buttons">
             <button class="gender-btn" onclick="selectGender('male', this)">
