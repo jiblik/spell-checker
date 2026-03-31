@@ -269,15 +269,14 @@
 
     /* Ask section */
     .ask-section {
-      border-top: 1px solid var(--border);
-      padding-top: 20px;
-      margin-top: 8px;
+      padding-top: 0;
     }
 
     .ask-row {
       display: flex;
       gap: 10px;
       align-items: stretch;
+      direction: rtl;
     }
 
     .ask-input {
@@ -290,6 +289,7 @@
       font-family: 'Noto Sans Hebrew', sans-serif;
       font-size: 15px;
       direction: rtl;
+      text-align: right;
       transition: border-color 0.2s;
     }
 
@@ -297,7 +297,7 @@
     .ask-input::placeholder { color: var(--text-dim); }
 
     .ask-btn {
-      padding: 12px 20px;
+      padding: 12px 24px;
       border-radius: 12px;
       border: none;
       background: linear-gradient(135deg, #8b5cf6, #6366f1);
@@ -310,7 +310,9 @@
       white-space: nowrap;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
+      min-width: 70px;
     }
 
     .ask-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3); }
@@ -335,9 +337,11 @@
       border: 1px solid rgba(139, 92, 246, 0.25);
       border-radius: 12px;
       padding: 16px;
+      padding-left: 80px;
       font-size: 15px;
       line-height: 1.8;
       direction: rtl;
+      text-align: right;
       white-space: pre-wrap;
       position: relative;
     }
@@ -346,12 +350,12 @@
 
     .ask-answer .copy-answer-btn {
       position: absolute;
-      left: 10px;
-      top: 10px;
+      left: 12px;
+      top: 12px;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 4px 10px;
+      padding: 6px 12px;
       font-size: 12px;
       color: var(--text-muted);
       cursor: pointer;
@@ -361,6 +365,29 @@
 
     .ask-answer .copy-answer-btn:hover { border-color: var(--accent); color: var(--text); }
     .ask-answer .copy-answer-btn.copied { border-color: #22c55e; color: #22c55e; }
+
+    .ask-quick-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      direction: rtl;
+    }
+
+    .ask-quick-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-muted);
+      font-family: 'Noto Sans Hebrew', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .ask-quick-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(96, 165, 250, 0.08); }
 
     .actions {
       display: flex;
@@ -657,6 +684,14 @@
             <span class="ask-btn-text">שאל</span>
             <span class="spinner-sm"></span>
           </button>
+        </div>
+        <div class="ask-quick-btns">
+          <button class="ask-quick-btn" onclick="quickAsk('סניפים ושעות פתיחה')">🕐 שעות פתיחה</button>
+          <button class="ask-quick-btn" onclick="quickAsk('מה לענות ללקוח ששואל על קופון הנחה?')">🏷️ קופון הנחה</button>
+          <button class="ask-quick-btn" onclick="quickAsk('מה לענות ללקוח ששואל אם המוצרים מקוריים?')">✅ מקוריות</button>
+          <button class="ask-quick-btn" onclick="quickAsk('מה לענות ללקוח שרוצה להחזיר מוצר?')">↩️ החזרות</button>
+          <button class="ask-quick-btn" onclick="quickAsk('מה לענות ללקוח ששואל על זמן משלוח?')">📦 משלוחים</button>
+          <button class="ask-quick-btn" onclick="quickAsk('מה לענות ללקוח שמתלונן על שירות?')">😤 תלונה</button>
         </div>
         <div class="ask-answer" id="askAnswer">
           <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
@@ -1097,6 +1132,12 @@ ${question}`;
     btn.classList.remove('loading');
     btn.disabled = !document.getElementById('askInput').value.trim();
   }
+}
+
+function quickAsk(question) {
+  document.getElementById('askInput').value = question;
+  document.getElementById('askBtn').disabled = false;
+  askQuestion();
 }
 
 async function copyAnswer(btn) {
