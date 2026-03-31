@@ -714,45 +714,46 @@
   <div class="container">
 
     <div class="two-columns">
-      <!-- Left column: Ask the system -->
-      <div class="card" style="order: 2;">
-        <div class="ask-section">
-          <div class="card-label">🤖 שאלו את המערכת</div>
-          <div class="ask-row">
-            <input type="text" class="ask-input" id="askInput" placeholder="שעות פתיחה? כתובת סניף? מה לענות ללקוח?" dir="rtl">
-            <button class="ask-btn" id="askBtn" onclick="askQuestion()" disabled>
-              <span class="ask-btn-text">שאל</span>
-              <span class="spinner-sm"></span>
+      <!-- Left column: Ask + UTM -->
+      <div style="display: flex; flex-direction: column; gap: 20px; order: 2;">
+        <div class="card">
+          <div class="ask-section">
+            <div class="card-label">🤖 שאלו את המערכת</div>
+            <div class="ask-row">
+              <input type="text" class="ask-input" id="askInput" placeholder="שעות פתיחה? כתובת סניף? מה לענות ללקוח?" dir="rtl">
+              <button class="ask-btn" id="askBtn" onclick="askQuestion()" disabled>
+                <span class="ask-btn-text">שאל</span>
+                <span class="spinner-sm"></span>
+              </button>
+            </div>
+            <div class="ask-answer" id="askAnswer">
+              <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
+              <div class="ask-answer-content" id="askAnswerText"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">🔗 בונה קישורים עם UTM</div>
+          <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן קישור..." dir="ltr" style="text-align: left; margin-bottom: 12px;">
+          <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
+            <button class="gender-btn utm-btn" onclick="buildUTM('instagram_story', this)">
+              <span class="emoji">📖</span> אינסטגרם סטורי
+            </button>
+            <button class="gender-btn utm-btn" onclick="buildUTM('instagram_dm', this)">
+              <span class="emoji">💬</span> אינסטגרם DM
+            </button>
+            <button class="gender-btn utm-btn" onclick="buildUTM('facebook_dm', this)">
+              <span class="emoji">💬</span> פייסבוק DM
+            </button>
+            <button class="gender-btn utm-btn" onclick="buildUTM('whatsapp', this)">
+              <span class="emoji">📱</span> וואטסאפ
             </button>
           </div>
-          <div class="ask-answer" id="askAnswer">
-            <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
-            <div class="ask-answer-content" id="askAnswerText"></div>
+          <div class="utm-result" id="utmResult">
+            <div class="utm-link" id="utmLink"></div>
+            <button class="action-btn" id="utmCopyBtn" onclick="copyUTM()">📋 העתק קישור</button>
           </div>
-        </div>
-      </div>
-
-      <!-- UTM Builder -->
-      <div class="card" style="order: 3;">
-        <div class="card-label">🔗 בונה קישורים עם UTM</div>
-        <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן קישור..." dir="ltr" style="text-align: left; margin-bottom: 12px;">
-        <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
-          <button class="gender-btn utm-btn" onclick="buildUTM('instagram_story', this)">
-            <span class="emoji">📖</span> אינסטגרם סטורי
-          </button>
-          <button class="gender-btn utm-btn" onclick="buildUTM('instagram_dm', this)">
-            <span class="emoji">💬</span> אינסטגרם DM
-          </button>
-          <button class="gender-btn utm-btn" onclick="buildUTM('facebook_dm', this)">
-            <span class="emoji">💬</span> פייסבוק DM
-          </button>
-          <button class="gender-btn utm-btn" onclick="buildUTM('whatsapp', this)">
-            <span class="emoji">📱</span> וואטסאפ
-          </button>
-        </div>
-        <div class="utm-result" id="utmResult">
-          <div class="utm-link" id="utmLink"></div>
-          <button class="action-btn" id="utmCopyBtn" onclick="copyUTM()">📋 העתק קישור</button>
         </div>
       </div>
 
