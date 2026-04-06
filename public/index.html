@@ -914,19 +914,19 @@
   <div class="setup-overlay" id="setupOverlay">
     <div class="setup-card">
       <h2>הגדרה ראשונית (פעם אחת)</h2>
-      <div class="subtitle">צריך מפתח חינמי מ-Groq כדי שה-AI יתקן את הטקסט</div>
+      <div class="subtitle">צריך מפתח חינמי מ-Google Gemini כדי שה-AI יתקן את הטקסט</div>
 
       <div class="setup-steps">
         <div class="setup-step">
           <div class="step-num">1</div>
           <div class="step-text">
-            היכנסו ל-<a href="https://console.groq.com/keys" target="_blank">Groq Console</a>
-            (הירשמו בחינם עם Google)
+            היכנסו ל-<a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>
+            (היכנסו עם חשבון Google)
           </div>
         </div>
         <div class="setup-step">
           <div class="step-num">2</div>
-          <div class="step-text">לחצו על <strong>"Create API Key"</strong> ותנו שם כלשהו</div>
+          <div class="step-text">לחצו על <strong>"Create API Key"</strong> ובחרו פרויקט</div>
         </div>
         <div class="setup-step">
           <div class="step-num">3</div>
@@ -934,9 +934,9 @@
         </div>
       </div>
 
-      <input type="password" class="key-input" id="apiKeyInput" placeholder="gsk_..." dir="ltr">
+      <input type="password" class="key-input" id="apiKeyInput" placeholder="AIza..." dir="ltr">
       <button class="setup-btn" id="saveKeyBtn" onclick="saveApiKey()" disabled>שמור והתחל</button>
-      <div class="setup-note">המפתח נשמר רק בדפדפן שלכם ולא נשלח לשום מקום חוץ מ-Groq</div>
+      <div class="setup-note">המפתח נשמר רק בדפדפן שלכם ולא נשלח לשום מקום חוץ מ-Google</div>
 
       <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
         <h3 style="margin-bottom: 12px; font-size: 16px;">📊 לוגים משותפים (Google Apps Script)</h3>
@@ -1725,33 +1725,35 @@ SERVICE_GUIDELINES = `מידע על אופטיסטור:
 // Load data from Sheets on startup
 loadFromSheets();
 
-async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
+async function callGemini(apiKey, systemPrompt, userPrompt, temperature = 0.1, maxTokens = 2048, retries = 3) {
+  const model = 'gemini-2.0-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
   for (let attempt = 1; attempt <= retries; attempt++) {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages,
-        temperature,
-        max_tokens: maxTokens
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          temperature,
+          maxOutputTokens: maxTokens
+        }
       })
     });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       const msg = err.error?.message || '';
-      if (res.status === 401) {
+      if (res.status === 400 || res.status === 403) {
         localStorage.removeItem(STORAGE_KEY);
         showSetup();
         throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
       }
       if (res.status === 429) {
         if (attempt < retries) {
-          await new Promise(r => setTimeout(r, attempt * 2000));
+          await new Promise(r => setTimeout(r, attempt * 3000));
           continue;
         }
         throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
@@ -1760,7 +1762,7 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
     }
 
     const data = await res.json();
-    const result = data.choices?.[0]?.message?.content;
+    const result = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
     return result.trim();
   }
@@ -1817,10 +1819,9 @@ ${contextBlock}
 הטקסט לתיקון:
 ${text}`;
 
-  return callGroqRaw(apiKey, [
-    { role: 'system', content: 'אתה מתקן כתיב ודקדוק בעברית לפי כללי שירות הלקוחות של אופטיסטור. החזר רק את הטקסט המתוקן, ללא הסברים.' },
-    { role: 'user', content: prompt }
-  ], 0.1, 2048);
+  const systemPrompt = 'אתה מתקן טקסטים בעברית לנציגי שירות לקוחות. כלל ברזל: תקן רק מה שצריך תיקון. לא להמציא תוכן חדש, לא להוסיף משפטים שהנציג לא כתב, לא לנפח את הטקסט. החזר רק את הטקסט המתוקן.';
+
+  return callGemini(apiKey, systemPrompt, prompt, 0.1, 2048);
 }
 
 
@@ -1853,10 +1854,8 @@ ${SERVICE_GUIDELINES}
 - לא לערבב עברית ואנגלית באותה שורה`;
 
   try {
-    return await callGroqRaw(apiKey, [
-      { role: 'system', content: 'אתה מאמן שירות לקוחות חברי ומעודד. עוזר לנציגים להשתפר. ענה בעברית בלבד. תהיה קצר וממוקד.' },
-      { role: 'user', content: prompt }
-    ], 0.3, 1024);
+    const systemPrompt = 'אתה מאמן שירות לקוחות חברי ומעודד. עוזר לנציגים להשתפר. ענה בעברית בלבד. תהיה קצר וממוקד.';
+    return await callGemini(apiKey, systemPrompt, prompt, 0.3, 1024);
   } catch {
     return null;
   }
@@ -2079,10 +2078,8 @@ ${SERVICE_GUIDELINES}
 ${question}`;
 
   try {
-    const answer = await callGroqRaw(apiKey, [
-      { role: 'system', content: 'אתה עוזר חברי וחם לנציגי שירות לקוחות של אופטיסטור. ענה כאילו אתה קולגה ותיק שעוזר לחבר בצוות. תשתמש בשפה טבעית וחמה, לא רובוטית. אל תמציא מידע.' },
-      { role: 'user', content: prompt }
-    ], 0.3, 1024);
+    const systemPrompt = 'אתה עוזר חברי וחם לנציגי שירות לקוחות של אופטיסטור. ענה כאילו אתה קולגה ותיק שעוזר לחבר בצוות. תשתמש בשפה טבעית וחמה, לא רובוטית. אל תמציא מידע.';
+    const answer = await callGemini(apiKey, systemPrompt, prompt, 0.3, 1024);
 
     // Make URLs clickable
     const escaped = answer.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
