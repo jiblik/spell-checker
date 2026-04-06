@@ -940,16 +940,23 @@
 
       <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
         <h3 style="margin-bottom: 12px; font-size: 16px;">🔑 סיסמאות משתמשים</h3>
-        <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:right;">
-          <thead>
-            <tr style="border-bottom:2px solid var(--border);">
-              <th style="padding:8px 12px;">שם</th>
-              <th style="padding:8px 12px;">תפקיד</th>
-              <th style="padding:8px 12px;">סיסמה</th>
-            </tr>
-          </thead>
-          <tbody id="usersPasswordTable"></tbody>
-        </table>
+        <div id="pwdFolderLocked" style="display:flex; gap:8px; align-items:center;">
+          <input type="password" id="pwdFolderInput" placeholder="הכניסו סיסמה..." style="flex:1; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg-input); color:var(--text); font-size:14px; direction:rtl;">
+          <button onclick="unlockPwdFolder()" style="padding:10px 18px; border-radius:10px; border:none; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; font-size:14px;">פתח</button>
+        </div>
+        <div class="pwd-error" id="pwdFolderError" style="color:#ef4444; font-size:13px; margin-top:6px; display:none;">סיסמה שגויה ❌</div>
+        <div id="pwdFolderContent" style="display:none; margin-top:12px;">
+          <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:right;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border);">
+                <th style="padding:8px 12px;">שם</th>
+                <th style="padding:8px 12px;">תפקיד</th>
+                <th style="padding:8px 12px;">סיסמה</th>
+              </tr>
+            </thead>
+            <tbody id="usersPasswordTable"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -1454,16 +1461,38 @@ function showSetup() {
   document.getElementById('apiKeyInput').value = getApiKey();
   document.getElementById('setupOverlay').classList.remove('hidden');
   document.getElementById('saveKeyBtn').disabled = !getApiKey();
-  const roleMap = { admin: 'מנהל', viewer: 'צופה', agent: 'נציג/ה', 'agent+viewer': 'נציג/ה + צופה' };
-  const tbody = document.getElementById('usersPasswordTable');
-  tbody.innerHTML = Object.values(USERS).map(u =>
-    `<tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:8px 12px;">${u.name}</td>
-      <td style="padding:8px 12px;">${roleMap[u.role] || u.role}</td>
-      <td style="padding:8px 12px; direction:ltr; text-align:left; font-family:monospace;">${u.pass}</td>
-    </tr>`
-  ).join('');
+  // Reset password folder to locked state
+  document.getElementById('pwdFolderLocked').style.display = 'flex';
+  document.getElementById('pwdFolderContent').style.display = 'none';
+  document.getElementById('pwdFolderError').style.display = 'none';
+  document.getElementById('pwdFolderInput').value = '';
 }
+
+function unlockPwdFolder() {
+  const pwd = document.getElementById('pwdFolderInput').value;
+  if (pwd === 'Igor2525') {
+    document.getElementById('pwdFolderLocked').style.display = 'none';
+    document.getElementById('pwdFolderError').style.display = 'none';
+    document.getElementById('pwdFolderContent').style.display = 'block';
+    const roleMap = { admin: 'מנהל', viewer: 'צופה', agent: 'נציג/ה', 'agent+viewer': 'נציג/ה + צופה' };
+    const tbody = document.getElementById('usersPasswordTable');
+    tbody.innerHTML = Object.values(USERS).map(u =>
+      `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 12px;">${u.name}</td>
+        <td style="padding:8px 12px;">${roleMap[u.role] || u.role}</td>
+        <td style="padding:8px 12px; direction:ltr; text-align:left; font-family:monospace;">${u.pass}</td>
+      </tr>`
+    ).join('');
+  } else {
+    document.getElementById('pwdFolderError').style.display = 'block';
+    document.getElementById('pwdFolderInput').value = '';
+    document.getElementById('pwdFolderInput').focus();
+  }
+}
+
+document.getElementById('pwdFolderInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') unlockPwdFolder();
+});
 
 document.getElementById('apiKeyInput').addEventListener('input', (e) => {
   document.getElementById('saveKeyBtn').disabled = !e.target.value.trim();
