@@ -1746,10 +1746,16 @@ async function callGemini(apiKey, systemPrompt, userPrompt, temperature = 0.1, m
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       const msg = err.error?.message || '';
-      if (res.status === 400 || res.status === 403) {
+      console.error('Gemini API error:', res.status, msg);
+      if (res.status === 400 && msg.includes('API key')) {
         localStorage.removeItem(STORAGE_KEY);
         showSetup();
         throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
+      }
+      if (res.status === 403) {
+        localStorage.removeItem(STORAGE_KEY);
+        showSetup();
+        throw new Error('מפתח API לא תקין או לא מאושר. צרו מפתח חדש ב-Google AI Studio.');
       }
       if (res.status === 429) {
         if (attempt < retries) {
@@ -1758,7 +1764,10 @@ async function callGemini(apiKey, systemPrompt, userPrompt, temperature = 0.1, m
         }
         throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
       }
-      throw new Error(msg || 'שגיאה בתקשורת. נסו שוב.');
+      if (res.status === 404) {
+        throw new Error('מודל לא נמצא. שגיאת הגדרה.');
+      }
+      throw new Error(`שגיאה ${res.status}: ${msg || 'נסו שוב.'}`);
     }
 
     const data = await res.json();
