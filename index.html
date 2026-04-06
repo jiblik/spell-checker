@@ -1736,7 +1736,7 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) loadFromSheets();
 });
 
-async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 5) {
+async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 5, model = 'llama-3.3-70b-versatile') {
   for (let attempt = 1; attempt <= retries; attempt++) {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -1745,7 +1745,7 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model,
         messages,
         temperature,
         max_tokens: maxTokens
@@ -1885,7 +1885,7 @@ ${SERVICE_GUIDELINES}
     return await callGroqRaw(apiKey, [
       { role: 'system', content: 'אתה מאמן שירות לקוחות. ענה רק ב-JSON תקין לפי הפורמט שנדרש. בלי טקסט נוסף. עברית טבעית בלבד.' },
       { role: 'user', content: prompt }
-    ], 0.3, 1024);
+    ], 0.3, 1024, 5, 'llama-3.1-8b-instant');
   } catch {
     return null;
   }
@@ -1933,12 +1933,15 @@ async function correctText() {
   try {
     const customerContext = document.getElementById('contextText').value.trim();
 
-    // Run correction first, then coaching (sequential to avoid rate limits)
+    // Run correction first, show it, then coaching after a delay
     const corrected = await callGroq(text, selectedGender, selectedPlatform, customerContext);
-    const coaching = customerContext ? await analyzeResponse(text, customerContext) : null;
 
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
+
+    // Wait 2 seconds before coaching call to avoid rate limits
+    if (customerContext) await new Promise(r => setTimeout(r, 2000));
+    const coaching = customerContext ? await analyzeResponse(text, customerContext) : null;
 
     // Show coaching feedback if there's context and feedback
     const coachingCard = document.getElementById('coachingCard');
