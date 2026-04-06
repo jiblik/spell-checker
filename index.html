@@ -1310,6 +1310,15 @@ function getLocalLogs() {
   catch { return []; }
 }
 
+// Google Apps Script returns a redirect - fetch via no-cors POST, read via GET with redirect follow
+function fetchGAS(url, options = {}) {
+  return fetch(url, { redirect: 'follow', ...options })
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r;
+    });
+}
+
 function saveLog(entry) {
   // Always save locally as backup
   const logs = getLocalLogs();
@@ -1322,7 +1331,8 @@ function saveLog(entry) {
     fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       body: JSON.stringify(entry),
-      headers: { 'Content-Type': 'text/plain' }
+      headers: { 'Content-Type': 'text/plain' },
+      mode: 'no-cors'
     }).catch(() => {});
   }
 }
@@ -1332,7 +1342,7 @@ function loadLogs() {
   if (APPS_SCRIPT_URL) {
     const tbody = document.getElementById('logTableBody');
     tbody.innerHTML = '<tr><td colspan="6" class="log-empty">⏳ טוען לוגים מ-Google Sheets...</td></tr>';
-    fetch(APPS_SCRIPT_URL)
+    fetchGAS(APPS_SCRIPT_URL)
       .then(r => r.json())
       .then(logs => {
         updateStats(logs);
@@ -1414,7 +1424,7 @@ function doExportCsv(logs) {
 
 function exportToExcel() {
   if (APPS_SCRIPT_URL) {
-    fetch(APPS_SCRIPT_URL)
+    fetchGAS(APPS_SCRIPT_URL)
       .then(r => r.json())
       .then(logs => doExportCsv(logs))
       .catch(() => doExportCsv(getLocalLogs()));
@@ -1513,7 +1523,7 @@ function saveAppsScriptUrl() {
     return;
   }
   statusEl.innerHTML = '<span style="color:var(--text-muted);">⏳ בודק חיבור...</span>';
-  fetch(url)
+  fetchGAS(url)
     .then(r => r.json())
     .then(data => {
       APPS_SCRIPT_URL = url;
