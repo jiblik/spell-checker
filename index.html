@@ -1722,8 +1722,14 @@ SERVICE_GUIDELINES = `מידע על אופטיסטור:
 - מייל: optistore@optistore.net
 - רשת אופטיקה בפריסה ארצית`;
 
-// Load data from Sheets on startup
+// Load data from Sheets on startup + auto-refresh every 5 minutes
 loadFromSheets();
+setInterval(loadFromSheets, 5 * 60 * 1000);
+
+// Also reload when user returns to the tab
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadFromSheets();
+});
 
 async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
