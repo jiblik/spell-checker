@@ -286,19 +286,14 @@
       background: rgba(251, 191, 36, 0.06);
       border: 1px solid rgba(251, 191, 36, 0.25);
       border-radius: 12px;
-      padding: 20px;
+      padding: 16px;
       direction: rtl;
       text-align: right;
-      line-height: 1.9;
+      line-height: 1.8;
       font-size: 14px;
       color: var(--text);
+      white-space: pre-wrap;
     }
-    .coaching-box .cb-status { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
-    .coaching-box .cb-section { margin-bottom: 14px; }
-    .coaching-box .cb-section-title { font-weight: 600; margin-bottom: 4px; color: var(--accent); font-size: 13px; }
-    .coaching-box .cb-ideal { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 14px; margin-top: 10px; white-space: pre-wrap; }
-    .coaching-box .cb-ideal-title { font-weight: 600; color: #10b981; margin-bottom: 6px; font-size: 13px; }
-    .coaching-box a { color: var(--accent); word-break: break-all; display: inline-block; direction: ltr; }
 
     /* Ask section */
     .ask-section {
@@ -1727,29 +1722,11 @@ SERVICE_GUIDELINES = `מידע על אופטיסטור:
 - מייל: optistore@optistore.net
 - רשת אופטיקה בפריסה ארצית`;
 
-// Load data from Sheets on startup + auto-refresh every 5 minutes
+// Load data from Sheets on startup
 loadFromSheets();
-setInterval(loadFromSheets, 5 * 60 * 1000);
 
-// Also reload when user returns to the tab
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) loadFromSheets();
-});
-
-// Rate limiter - enforce minimum gap between API calls
-let lastApiCall = 0;
-async function waitForRateLimit() {
-  const now = Date.now();
-  const gap = 2000; // minimum 2 seconds between calls
-  const wait = gap - (now - lastApiCall);
-  if (wait > 0) await new Promise(r => setTimeout(r, wait));
-  lastApiCall = Date.now();
-}
-
-async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3, model = 'llama-3.3-70b-versatile') {
+async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
-    await waitForRateLimit();
-
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -1757,7 +1734,7 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model,
+        model: 'llama-3.3-70b-versatile',
         messages,
         temperature,
         max_tokens: maxTokens
@@ -1773,14 +1750,8 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
         throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
       }
       if (res.status === 429) {
-        // Read Groq's retry-after header for exact wait time
-        const retryAfter = parseFloat(res.headers.get('retry-after')) || 0;
-        const resetTokens = parseFloat(res.headers.get('x-ratelimit-reset-tokens')) || 0;
-        const waitTime = Math.max(retryAfter, resetTokens, 5) * 1000; // at least 5 seconds
-
         if (attempt < retries) {
-          await new Promise(r => setTimeout(r, waitTime));
-          lastApiCall = Date.now();
+          await new Promise(r => setTimeout(r, attempt * 2000));
           continue;
         }
         throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
@@ -1788,7 +1759,6 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
       throw new Error(msg || 'שגיאה בתקשורת. נסו שוב.');
     }
 
-    lastApiCall = Date.now();
     const data = await res.json();
     const result = data.choices?.[0]?.message?.content;
     if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
@@ -1884,26 +1854,25 @@ ${SERVICE_GUIDELINES}
 הנציג/ה רוצה לענות:
 "${agentText}"
 
-ענה בפורמט הבא בדיוק (JSON):
-{
-  "status": "מצוין" או "חלקי" או "לא מספיק",
-  "missing": "מה חסר בתשובה (או null אם הכל בסדר)",
-  "ideal": "התשובה האידיאלית שהנציג צריך לשלוח (או null אם לא צריך)"
-}
+נתח את התשובה של הנציג/ה ביחס למה שהלקוח שאל:
 
-כללים:
-- אם התשובה טובה ועונה על הכל: status=מצוין, missing=null, ideal=null
-- אם חסר מידע: ציין מה חסר ותן תשובה אידיאלית מלאה
-- התשובה האידיאלית צריכה להיות בעברית טבעית, כמו בן אדם אמיתי
-- קישורים תמיד בשורה נפרדת
-- לא לערבב עברית ואנגלית באותה שורה
-- החזר רק JSON תקין, בלי שום טקסט לפני או אחרי`;
+1. האם התשובה עונה על מה שהלקוח שאל? (כן/חלקית/לא)
+2. מה חסר או לא נכון בתשובה?
+3. מה התשובה האידיאלית שהנציג/ה צריך/ה לתת?
+
+כללי תשובה:
+- אם התשובה טובה ועונה על הכל - כתוב רק: "✅ תשובה מצוינת!"
+- אם יש מה לשפר - תן פידבק קצר וברור בעברית, בטון חברי ומעודד (כמו קולגה ותיק)
+- אם התשובה לא רלוונטית למה שנשאל - הסבר מה הלקוח באמת רוצה ומה צריך לענות
+- תמיד תן דוגמה לתשובה טובה יותר אם יש מה לשפר
+- שים קישורים תמיד בשורה נפרדת עם תווית בעברית
+- לא לערבב עברית ואנגלית באותה שורה`;
 
   try {
     return await callGroqRaw(apiKey, [
-      { role: 'system', content: 'אתה מאמן שירות לקוחות. ענה רק ב-JSON תקין לפי הפורמט שנדרש. בלי טקסט נוסף. עברית טבעית בלבד.' },
+      { role: 'system', content: 'אתה מאמן שירות לקוחות חברי ומעודד. עוזר לנציגים להשתפר. ענה בעברית בלבד. תהיה קצר וממוקד.' },
       { role: 'user', content: prompt }
-    ], 0.3, 1024, 5, 'llama-3.1-8b-instant');
+    ], 0.3, 1024);
   } catch {
     return null;
   }
@@ -1951,51 +1920,22 @@ async function correctText() {
   try {
     const customerContext = document.getElementById('contextText').value.trim();
 
-    // Run correction first, show it, then coaching after a delay
-    const corrected = await callGroq(text, selectedGender, selectedPlatform, customerContext);
+    // Run correction and coaching analysis in parallel
+    const [corrected, coaching] = await Promise.all([
+      callGroq(text, selectedGender, selectedPlatform, customerContext),
+      customerContext ? analyzeResponse(text, customerContext) : Promise.resolve(null)
+    ]);
 
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
-
-    // Coaching is best-effort - don't let it block or fail the correction
-    let coaching = null;
-    if (customerContext) {
-      try { coaching = await analyzeResponse(text, customerContext); }
-      catch { /* silently skip coaching if rate limited */ }
-    }
 
     // Show coaching feedback if there's context and feedback
     const coachingCard = document.getElementById('coachingCard');
     const coachingBox = document.getElementById('coachingBox');
     if (coaching) {
-      try {
-        // Try to parse structured JSON response
-        const clean = coaching.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-        const data = JSON.parse(clean);
-        const statusIcons = { 'מצוין': '✅', 'חלקי': '⚠️', 'לא מספיק': '❌' };
-        const statusColors = { 'מצוין': '#10b981', 'חלקי': '#f59e0b', 'לא מספיק': '#ef4444' };
-        const icon = statusIcons[data.status] || '🎯';
-        const color = statusColors[data.status] || 'var(--text)';
-
-        let html = `<div class="cb-status" style="color:${color}">${icon} ${data.status === 'מצוין' ? 'תשובה מצוינת!' : 'סטטוס: ' + data.status}</div>`;
-
-        if (data.missing) {
-          html += `<div class="cb-section"><div class="cb-section-title">מה חסר:</div>${data.missing.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
-        }
-
-        if (data.ideal) {
-          const idealEscaped = data.ideal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          const idealWithLinks = idealEscaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-          html += `<div class="cb-ideal"><div class="cb-ideal-title">💡 תשובה מומלצת:</div>${idealWithLinks}</div>`;
-        }
-
-        coachingBox.innerHTML = html;
-      } catch {
-        // Fallback for non-JSON responses
-        const escaped = coaching.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        const withLinks = escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-        coachingBox.innerHTML = `<div style="white-space:pre-wrap">${withLinks}</div>`;
-      }
+      const escaped = coaching.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const withLinks = escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent);word-break:break-all;">$1</a>');
+      coachingBox.innerHTML = withLinks;
       coachingCard.classList.add('visible');
     }
 
