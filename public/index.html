@@ -937,6 +937,20 @@
       <input type="password" class="key-input" id="apiKeyInput" placeholder="gsk_..." dir="ltr">
       <button class="setup-btn" id="saveKeyBtn" onclick="saveApiKey()" disabled>שמור והתחל</button>
       <div class="setup-note">המפתח נשמר רק בדפדפן שלכם ולא נשלח לשום מקום חוץ מ-Groq</div>
+
+      <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <h3 style="margin-bottom: 12px; font-size: 16px;">🔑 סיסמאות משתמשים</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:right;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);">
+              <th style="padding:8px 12px;">שם</th>
+              <th style="padding:8px 12px;">תפקיד</th>
+              <th style="padding:8px 12px;">סיסמה</th>
+            </tr>
+          </thead>
+          <tbody id="usersPasswordTable"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1440,6 +1454,15 @@ function showSetup() {
   document.getElementById('apiKeyInput').value = getApiKey();
   document.getElementById('setupOverlay').classList.remove('hidden');
   document.getElementById('saveKeyBtn').disabled = !getApiKey();
+  const roleMap = { admin: 'מנהל', viewer: 'צופה', agent: 'נציג/ה', 'agent+viewer': 'נציג/ה + צופה' };
+  const tbody = document.getElementById('usersPasswordTable');
+  tbody.innerHTML = Object.values(USERS).map(u =>
+    `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px 12px;">${u.name}</td>
+      <td style="padding:8px 12px;">${roleMap[u.role] || u.role}</td>
+      <td style="padding:8px 12px; direction:ltr; text-align:left; font-family:monospace;">${u.pass}</td>
+    </tr>`
+  ).join('');
 }
 
 document.getElementById('apiKeyInput').addEventListener('input', (e) => {
