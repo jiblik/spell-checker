@@ -1762,10 +1762,7 @@ async function callGemini(apiKey, systemPrompt, userPrompt, temperature = 0.1, m
           await new Promise(r => setTimeout(r, attempt * 3000));
           continue;
         }
-        throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
-      }
-      if (res.status === 404) {
-        throw new Error('מודל לא נמצא. שגיאת הגדרה.');
+        throw new Error('יותר מדי בקשות. המתינו דקה ונסו שוב. [429]');
       }
       throw new Error(`שגיאה ${res.status}: ${msg || 'נסו שוב.'}`);
     }
