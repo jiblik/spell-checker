@@ -1736,8 +1736,20 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) loadFromSheets();
 });
 
-async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 5, model = 'llama-3.3-70b-versatile') {
+// Rate limiter - enforce minimum gap between API calls
+let lastApiCall = 0;
+async function waitForRateLimit() {
+  const now = Date.now();
+  const gap = 2000; // minimum 2 seconds between calls
+  const wait = gap - (now - lastApiCall);
+  if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  lastApiCall = Date.now();
+}
+
+async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3, model = 'llama-3.3-70b-versatile') {
   for (let attempt = 1; attempt <= retries; attempt++) {
+    await waitForRateLimit();
+
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -1761,9 +1773,14 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
         throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
       }
       if (res.status === 429) {
+        // Read Groq's retry-after header for exact wait time
+        const retryAfter = parseFloat(res.headers.get('retry-after')) || 0;
+        const resetTokens = parseFloat(res.headers.get('x-ratelimit-reset-tokens')) || 0;
+        const waitTime = Math.max(retryAfter, resetTokens, 5) * 1000; // at least 5 seconds
+
         if (attempt < retries) {
-          const delay = attempt * 3000; // 3s, 6s, 9s, 12s
-          await new Promise(r => setTimeout(r, delay));
+          await new Promise(r => setTimeout(r, waitTime));
+          lastApiCall = Date.now();
           continue;
         }
         throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
@@ -1771,6 +1788,7 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
       throw new Error(msg || 'שגיאה בתקשורת. נסו שוב.');
     }
 
+    lastApiCall = Date.now();
     const data = await res.json();
     const result = data.choices?.[0]?.message?.content;
     if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
@@ -1939,9 +1957,12 @@ async function correctText() {
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
 
-    // Wait 2 seconds before coaching call to avoid rate limits
-    if (customerContext) await new Promise(r => setTimeout(r, 2000));
-    const coaching = customerContext ? await analyzeResponse(text, customerContext) : null;
+    // Coaching is best-effort - don't let it block or fail the correction
+    let coaching = null;
+    if (customerContext) {
+      try { coaching = await analyzeResponse(text, customerContext); }
+      catch { /* silently skip coaching if rate limited */ }
+    }
 
     // Show coaching feedback if there's context and feedback
     const coachingCard = document.getElementById('coachingCard');
