@@ -286,14 +286,19 @@
       background: rgba(251, 191, 36, 0.06);
       border: 1px solid rgba(251, 191, 36, 0.25);
       border-radius: 12px;
-      padding: 16px;
+      padding: 20px;
       direction: rtl;
       text-align: right;
-      line-height: 1.8;
+      line-height: 1.9;
       font-size: 14px;
       color: var(--text);
-      white-space: pre-wrap;
     }
+    .coaching-box .cb-status { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+    .coaching-box .cb-section { margin-bottom: 14px; }
+    .coaching-box .cb-section-title { font-weight: 600; margin-bottom: 4px; color: var(--accent); font-size: 13px; }
+    .coaching-box .cb-ideal { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 14px; margin-top: 10px; white-space: pre-wrap; }
+    .coaching-box .cb-ideal-title { font-weight: 600; color: #10b981; margin-bottom: 6px; font-size: 13px; }
+    .coaching-box a { color: var(--accent); word-break: break-all; display: inline-block; direction: ltr; }
 
     /* Ask section */
     .ask-section {
@@ -1860,23 +1865,24 @@ ${SERVICE_GUIDELINES}
 הנציג/ה רוצה לענות:
 "${agentText}"
 
-נתח את התשובה של הנציג/ה ביחס למה שהלקוח שאל:
+ענה בפורמט הבא בדיוק (JSON):
+{
+  "status": "מצוין" או "חלקי" או "לא מספיק",
+  "missing": "מה חסר בתשובה (או null אם הכל בסדר)",
+  "ideal": "התשובה האידיאלית שהנציג צריך לשלוח (או null אם לא צריך)"
+}
 
-1. האם התשובה עונה על מה שהלקוח שאל? (כן/חלקית/לא)
-2. מה חסר או לא נכון בתשובה?
-3. מה התשובה האידיאלית שהנציג/ה צריך/ה לתת?
-
-כללי תשובה:
-- אם התשובה טובה ועונה על הכל - כתוב רק: "✅ תשובה מצוינת!"
-- אם יש מה לשפר - תן פידבק קצר וברור בעברית, בטון חברי ומעודד (כמו קולגה ותיק)
-- אם התשובה לא רלוונטית למה שנשאל - הסבר מה הלקוח באמת רוצה ומה צריך לענות
-- תמיד תן דוגמה לתשובה טובה יותר אם יש מה לשפר
-- שים קישורים תמיד בשורה נפרדת עם תווית בעברית
-- לא לערבב עברית ואנגלית באותה שורה`;
+כללים:
+- אם התשובה טובה ועונה על הכל: status=מצוין, missing=null, ideal=null
+- אם חסר מידע: ציין מה חסר ותן תשובה אידיאלית מלאה
+- התשובה האידיאלית צריכה להיות בעברית טבעית, כמו בן אדם אמיתי
+- קישורים תמיד בשורה נפרדת
+- לא לערבב עברית ואנגלית באותה שורה
+- החזר רק JSON תקין, בלי שום טקסט לפני או אחרי`;
 
   try {
     return await callGroqRaw(apiKey, [
-      { role: 'system', content: 'אתה מאמן שירות לקוחות חברי ומעודד. עוזר לנציגים להשתפר. ענה בעברית בלבד. תהיה קצר וממוקד.' },
+      { role: 'system', content: 'אתה מאמן שירות לקוחות. ענה רק ב-JSON תקין לפי הפורמט שנדרש. בלי טקסט נוסף. עברית טבעית בלבד.' },
       { role: 'user', content: prompt }
     ], 0.3, 1024);
   } catch {
@@ -1939,9 +1945,34 @@ async function correctText() {
     const coachingCard = document.getElementById('coachingCard');
     const coachingBox = document.getElementById('coachingBox');
     if (coaching) {
-      const escaped = coaching.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const withLinks = escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent);word-break:break-all;">$1</a>');
-      coachingBox.innerHTML = withLinks;
+      try {
+        // Try to parse structured JSON response
+        const clean = coaching.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        const data = JSON.parse(clean);
+        const statusIcons = { 'מצוין': '✅', 'חלקי': '⚠️', 'לא מספיק': '❌' };
+        const statusColors = { 'מצוין': '#10b981', 'חלקי': '#f59e0b', 'לא מספיק': '#ef4444' };
+        const icon = statusIcons[data.status] || '🎯';
+        const color = statusColors[data.status] || 'var(--text)';
+
+        let html = `<div class="cb-status" style="color:${color}">${icon} ${data.status === 'מצוין' ? 'תשובה מצוינת!' : 'סטטוס: ' + data.status}</div>`;
+
+        if (data.missing) {
+          html += `<div class="cb-section"><div class="cb-section-title">מה חסר:</div>${data.missing.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+        }
+
+        if (data.ideal) {
+          const idealEscaped = data.ideal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          const idealWithLinks = idealEscaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+          html += `<div class="cb-ideal"><div class="cb-ideal-title">💡 תשובה מומלצת:</div>${idealWithLinks}</div>`;
+        }
+
+        coachingBox.innerHTML = html;
+      } catch {
+        // Fallback for non-JSON responses
+        const escaped = coaching.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const withLinks = escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+        coachingBox.innerHTML = `<div style="white-space:pre-wrap">${withLinks}</div>`;
+      }
       coachingCard.classList.add('visible');
     }
 
