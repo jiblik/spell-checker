@@ -1736,7 +1736,7 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) loadFromSheets();
 });
 
-async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
+async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 5) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -1762,7 +1762,8 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
       }
       if (res.status === 429) {
         if (attempt < retries) {
-          await new Promise(r => setTimeout(r, attempt * 2000));
+          const delay = attempt * 3000; // 3s, 6s, 9s, 12s
+          await new Promise(r => setTimeout(r, delay));
           continue;
         }
         throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
@@ -1932,11 +1933,9 @@ async function correctText() {
   try {
     const customerContext = document.getElementById('contextText').value.trim();
 
-    // Run correction and coaching analysis in parallel
-    const [corrected, coaching] = await Promise.all([
-      callGroq(text, selectedGender, selectedPlatform, customerContext),
-      customerContext ? analyzeResponse(text, customerContext) : Promise.resolve(null)
-    ]);
+    // Run correction first, then coaching (sequential to avoid rate limits)
+    const corrected = await callGroq(text, selectedGender, selectedPlatform, customerContext);
+    const coaching = customerContext ? await analyzeResponse(text, customerContext) : null;
 
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
