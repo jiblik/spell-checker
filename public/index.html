@@ -973,8 +973,14 @@
             <button class="gender-btn utm-btn" onclick="applyUTMPreset('email', this)">
               📧 אימייל
             </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('sms', this)">
-              📱 SMS
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('tiktok', this)">
+              <img src="tiktok-logo.png" class="btn-logo" onerror="this.style.display='none'"> טיקטוק
+            </button>
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('google_ads', this)">
+              🔍 גוגל אדס
+            </button>
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('youtube', this)">
+              ▶️ יוטיוב
             </button>
           </div>
 
@@ -1841,7 +1847,9 @@ const UTM_PRESETS = {
   facebook_dm:     { source: 'facebook',  medium: 'social', campaign: 'facebook_dm' },
   whatsapp:        { source: 'whatsapp',  medium: 'social', campaign: 'whatsapp' },
   email:           { source: 'email',     medium: 'email',  campaign: '' },
-  sms:             { source: 'sms',       medium: 'sms',    campaign: '' },
+  tiktok:          { source: 'tiktok',   medium: 'social', campaign: 'tiktok' },
+  google_ads:      { source: 'google',   medium: 'cpc',    campaign: '' },
+  youtube:         { source: 'youtube',  medium: 'social', campaign: 'youtube' },
 };
 
 function applyUTMPreset(type, btn) {
