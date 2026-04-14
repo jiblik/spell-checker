@@ -954,7 +954,7 @@
         <div class="card card-emerald">
           <div class="card-label">🔗 בונה קישורים עם UTM</div>
 
-          <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן את כתובת הקישור (URL)..." dir="ltr" style="text-align: left; margin-bottom: 12px; width: 100%;">
+          <input type="text" class="ask-input" id="utmLinkInput" placeholder="...הדביקו כאן את כתובת הקישור (URL)" dir="rtl" style="text-align: right; margin-bottom: 12px; width: 100%;">
 
           <div class="card-label" style="font-size: 12px; margin-bottom: 6px;">📡 פלטפורמה (ממלא אוטומטית)</div>
           <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
@@ -971,16 +971,13 @@
               <img src="whatsapp-logo.png" class="btn-logo"> וואטסאפ
             </button>
             <button class="gender-btn utm-btn" onclick="applyUTMPreset('email', this)">
-              📧 אימייל
+              <img src="email-logo.webp" class="btn-logo"> אימייל
             </button>
             <button class="gender-btn utm-btn" onclick="applyUTMPreset('tiktok', this)">
-              <img src="tiktok-logo.png" class="btn-logo" onerror="this.style.display='none'"> טיקטוק
-            </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('google_ads', this)">
-              🔍 גוגל אדס
+              <img src="tiktok-logo.png" class="btn-logo"> טיקטוק
             </button>
             <button class="gender-btn utm-btn" onclick="applyUTMPreset('youtube', this)">
-              ▶️ יוטיוב
+              <img src="youtube-logo.png" class="btn-logo"> יוטיוב
             </button>
           </div>
 
@@ -1848,7 +1845,6 @@ const UTM_PRESETS = {
   whatsapp:        { source: 'whatsapp',  medium: 'social', campaign: 'whatsapp' },
   email:           { source: 'email',     medium: 'email',  campaign: '' },
   tiktok:          { source: 'tiktok',   medium: 'social', campaign: 'tiktok' },
-  google_ads:      { source: 'google',   medium: 'cpc',    campaign: '' },
   youtube:         { source: 'youtube',  medium: 'social', campaign: 'youtube' },
 };
 
