@@ -295,18 +295,7 @@
       white-space: pre-wrap;
     }
 
-    /* Ask section */
-    .ask-section {
-      padding-top: 0;
-    }
-
-    .ask-row {
-      display: flex;
-      gap: 10px;
-      align-items: stretch;
-      direction: rtl;
-    }
-
+    /* Input fields */
     .ask-input {
       flex: 1;
       padding: 12px 16px;
@@ -324,104 +313,7 @@
     .ask-input:focus { outline: none; border-color: var(--accent); }
     .ask-input::placeholder { color: var(--text-dim); }
 
-    .ask-btn {
-      padding: 12px 24px;
-      border-radius: 12px;
-      border: none;
-      background: linear-gradient(135deg, #8b5cf6, #6366f1);
-      color: white;
-      font-family: 'Noto Sans Hebrew', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-width: 70px;
-    }
-
-    .ask-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3); }
-    .ask-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    .ask-btn .spinner-sm {
-      display: none;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-    }
-    .ask-btn.loading .spinner-sm { display: block; }
-    .ask-btn.loading .ask-btn-text { display: none; }
-
-    .ask-answer {
-      display: none;
-      margin-top: 12px;
-      background: rgba(139, 92, 246, 0.06);
-      border: 1px solid rgba(139, 92, 246, 0.25);
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 15px;
-      line-height: 1.8;
-      direction: rtl;
-      text-align: right;
-      white-space: pre-wrap;
-      position: relative;
-    }
-
-    .ask-answer-content {
-      display: block;
-      margin-left: 70px;
-    }
-
-    .ask-answer.visible { display: block; }
-
-    .ask-answer .copy-answer-btn {
-      position: absolute;
-      left: 12px;
-      top: 12px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 12px;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-family: 'Noto Sans Hebrew', sans-serif;
-      transition: all 0.2s;
-    }
-
-    .ask-answer .copy-answer-btn:hover { border-color: var(--accent); color: var(--text); }
-    .ask-answer .copy-answer-btn.copied { border-color: #22c55e; color: #22c55e; }
-
-    .ask-quick-btns {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-      direction: rtl;
-    }
-
-    .ask-quick-btn {
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--bg-input);
-      color: var(--text-muted);
-      font-family: 'Noto Sans Hebrew', sans-serif;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .ask-quick-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(96, 165, 250, 0.08); }
-
-    .actions {
+.actions {
       display: flex;
       gap: 10px;
       margin-top: 12px;
@@ -1057,42 +949,51 @@
     <div id="toolSection">
 
     <div class="two-columns">
-      <!-- Left column: Ask + UTM -->
+      <!-- Left column: UTM Builder -->
       <div style="display: flex; flex-direction: column; gap: 20px; order: 2;">
-        <div class="card card-purple">
-          <div class="ask-section">
-            <div class="card-label">🤖 שאלו את המערכת</div>
-            <div class="ask-row">
-              <input type="text" class="ask-input" id="askInput" placeholder="שעות פתיחה? כתובת סניף? מה לענות ללקוח?" dir="rtl">
-              <button class="ask-btn" id="askBtn" onclick="askQuestion()" disabled>
-                <span class="ask-btn-text">שאל</span>
-                <span class="spinner-sm"></span>
-              </button>
-            </div>
-            <div class="ask-answer" id="askAnswer">
-              <button class="copy-answer-btn" onclick="copyAnswer(this)">📋 העתק</button>
-              <div class="ask-answer-content" id="askAnswerText"></div>
-            </div>
-          </div>
-        </div>
-
         <div class="card card-emerald">
           <div class="card-label">🔗 בונה קישורים עם UTM</div>
-          <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן קישור..." dir="rtl" style="text-align: right; margin-bottom: 12px; width: 100%;">
+
+          <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן את כתובת הקישור (URL)..." dir="ltr" style="text-align: left; margin-bottom: 12px; width: 100%;">
+
+          <div class="card-label" style="font-size: 12px; margin-bottom: 6px;">📡 פלטפורמה (ממלא אוטומטית)</div>
           <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
-            <button class="gender-btn utm-btn" onclick="buildUTM('instagram_story', this)">
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('instagram_story', this)">
               <img src="instagram-logo.png" class="btn-logo"> אינסטגרם סטורי
             </button>
-            <button class="gender-btn utm-btn" onclick="buildUTM('instagram_dm', this)">
-              <img src="instagram-logo.png" class="btn-logo"> אינסטגרם DM
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('instagram_dm', this)">
+              <img src="instagram-logo.png" class="btn-logo"> אינסטגרם דיירקט
             </button>
-            <button class="gender-btn utm-btn" onclick="buildUTM('facebook_dm', this)">
-              <img src="facebook-logo.png" class="btn-logo"> פייסבוק DM
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('facebook_dm', this)">
+              <img src="facebook-logo.png" class="btn-logo"> פייסבוק דיירקט
             </button>
-            <button class="gender-btn utm-btn" onclick="buildUTM('whatsapp', this)">
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('whatsapp', this)">
               <img src="whatsapp-logo.png" class="btn-logo"> וואטסאפ
             </button>
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('email', this)">
+              📧 אימייל
+            </button>
+            <button class="gender-btn utm-btn" onclick="applyUTMPreset('sms', this)">
+              📱 SMS
+            </button>
           </div>
+
+          <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px; direction: rtl;">
+            <div class="card-label" style="font-size: 12px; margin-bottom: 2px;">⚙️ פרמטרים (ניתן לערוך ידנית)</div>
+            <div style="display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; align-items: center; font-size: 13px;">
+              <label style="text-align: right; color: var(--text-muted);">Source</label>
+              <input type="text" class="ask-input utm-field" id="utmSource" placeholder="instagram / facebook / whatsapp" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+              <label style="text-align: right; color: var(--text-muted);">Medium</label>
+              <input type="text" class="ask-input utm-field" id="utmMedium" placeholder="social / email / sms" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+              <label style="text-align: right; color: var(--text-muted);">Campaign</label>
+              <input type="text" class="ask-input utm-field" id="utmCampaign" placeholder="summer_sale / new_collection" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+              <label style="text-align: right; color: var(--text-muted);">Content</label>
+              <input type="text" class="ask-input utm-field" id="utmContent" placeholder="(אופציונלי) banner / link / cta" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+            </div>
+          </div>
+
+          <button class="action-btn" style="margin-top: 14px; width: 100%; text-align: center;" onclick="buildUTMFromFields()">🔗 בנה קישור</button>
+
           <div class="utm-result" id="utmResult">
             <div class="utm-link" id="utmLink"></div>
             <button class="action-btn" id="utmCopyBtn" onclick="copyUTM()">📋 העתק קישור</button>
@@ -1103,7 +1004,7 @@
       <!-- Right column: Message input -->
       <div style="display: flex; flex-direction: column; gap: 20px; order: 1;">
         <div class="card card-blue">
-          <div class="card-label">💬 מה הלקוח שאל/כתב?</div>
+          <div class="card-label">💬 מה הלקוח שאל/כתב? <span style="font-size: 12px; font-weight: 400; color: var(--text-dim);">(לא חובה - מסייע למערכת להבין את הקונטקסט)</span></div>
           <textarea id="contextText" placeholder="הדביקו כאן את הודעת הלקוח כדי שהמערכת תתאים את התשובה..." style="min-height: 80px;"></textarea>
         </div>
 
@@ -1632,7 +1533,7 @@ let SERVICE_GUIDELINES = '';
 
 async function loadFromSheets() {
   try {
-    const [contacts, branches, dos, donts, platforms, genders, editing, askRules] = await Promise.all([
+    const [contacts, branches, dos, donts, platforms, genders, editing] = await Promise.all([
       fetchSheet('פרטי קשר'),
       fetchSheet('סניפים'),
       fetchSheet('לעשות'),
@@ -1640,7 +1541,6 @@ async function loadFromSheets() {
       fetchSheet('טון לפי פלטפורמה'),
       fetchSheet('מגדר'),
       fetchSheet('כללי עריכת טקסט'),
-      fetchSheet('שאלו את המערכת'),
     ]);
 
     // Parse contacts (skip header)
@@ -1935,22 +1835,44 @@ async function correctText() {
 
 // ==================== UTM BUILDER ====================
 
-const UTM_MAP = {
-  instagram_story: '&utm_source=instagram&utm_medium=social&utm_campaign=instagram_story',
-  instagram_dm: '&utm_source=instagram&utm_medium=social&utm_campaign=instagram_dm',
-  facebook_dm: '&utm_source=facebook&utm_medium=social&utm_campaign=facebook_dm',
-  whatsapp: '&utm_source=whatsapp&utm_medium=social&utm_campaign=whatsapp',
+const UTM_PRESETS = {
+  instagram_story: { source: 'instagram', medium: 'social', campaign: 'instagram_story' },
+  instagram_dm:    { source: 'instagram', medium: 'social', campaign: 'instagram_dm' },
+  facebook_dm:     { source: 'facebook',  medium: 'social', campaign: 'facebook_dm' },
+  whatsapp:        { source: 'whatsapp',  medium: 'social', campaign: 'whatsapp' },
+  email:           { source: 'email',     medium: 'email',  campaign: '' },
+  sms:             { source: 'sms',       medium: 'sms',    campaign: '' },
 };
 
-function buildUTM(type, btn) {
-  const link = document.getElementById('utmLinkInput').value.trim();
-  if (!link) return;
-
-  // Highlight selected button
+function applyUTMPreset(type, btn) {
+  const preset = UTM_PRESETS[type];
+  if (!preset) return;
   document.querySelectorAll('.utm-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  document.getElementById('utmSource').value = preset.source;
+  document.getElementById('utmMedium').value = preset.medium;
+  document.getElementById('utmCampaign').value = preset.campaign;
+  document.getElementById('utmResult').classList.remove('visible');
+}
 
-  const fullLink = link + UTM_MAP[type];
+function buildUTMFromFields() {
+  const link = document.getElementById('utmLinkInput').value.trim();
+  if (!link) { document.getElementById('utmLinkInput').focus(); return; }
+
+  const source = document.getElementById('utmSource').value.trim();
+  const medium = document.getElementById('utmMedium').value.trim();
+  const campaign = document.getElementById('utmCampaign').value.trim();
+  const content = document.getElementById('utmContent').value.trim();
+
+  if (!source) { document.getElementById('utmSource').focus(); return; }
+
+  const sep = link.includes('?') ? '&' : '?';
+  let params = `utm_source=${encodeURIComponent(source)}`;
+  if (medium) params += `&utm_medium=${encodeURIComponent(medium)}`;
+  if (campaign) params += `&utm_campaign=${encodeURIComponent(campaign)}`;
+  if (content) params += `&utm_content=${encodeURIComponent(content)}`;
+
+  const fullLink = link + sep + params;
   document.getElementById('utmLink').textContent = fullLink;
   document.getElementById('utmResult').classList.add('visible');
 }
@@ -1973,7 +1895,13 @@ async function copyUTM() {
 
 document.getElementById('utmLinkInput').addEventListener('input', () => {
   document.getElementById('utmResult').classList.remove('visible');
-  document.querySelectorAll('.utm-btn').forEach(b => b.classList.remove('active'));
+});
+
+document.querySelectorAll('.utm-field').forEach(f => {
+  f.addEventListener('input', () => {
+    document.querySelectorAll('.utm-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('utmResult').classList.remove('visible');
+  });
 });
 
 // ==================== CLEAR ====================
@@ -2015,97 +1943,6 @@ document.getElementById('apiKeyInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !document.getElementById('saveKeyBtn').disabled) saveApiKey();
 });
 
-// ==================== ASK THE SYSTEM ====================
-
-document.getElementById('askInput').addEventListener('input', (e) => {
-  document.getElementById('askBtn').disabled = !e.target.value.trim();
-});
-
-document.getElementById('askInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !document.getElementById('askBtn').disabled) askQuestion();
-});
-
-async function askQuestion() {
-  const question = document.getElementById('askInput').value.trim();
-  if (!question) return;
-
-  const apiKey = getApiKey();
-  if (!apiKey) { showSetup(); return; }
-
-  const btn = document.getElementById('askBtn');
-  const answerEl = document.getElementById('askAnswer');
-  const answerText = document.getElementById('askAnswerText');
-
-  btn.classList.add('loading');
-  btn.disabled = true;
-  answerEl.classList.remove('visible');
-
-  const prompt = `אתה עוזר לנציגי שירות לקוחות של רשת אופטיקה "אופטיסטור".
-
-${SERVICE_GUIDELINES}
-
-הנציג/ה שואל/ת אותך שאלה. ענה כאילו אתה קולגה ותיק שעוזר - בשפה טבעית, חמה ואנושית.
-אם השאלה היא על מה לענות ללקוח - תן תשובה מוכנה שהנציג יכול להעתיק ולשלוח.
-אם השאלה היא על מידע (כתובת, שעות, טלפון) - תן את כל המידע המדויק על הסניף, כולל כל ההערות שמופיעות במידע (למשל: קומה, חניה, ציון דרך, מיקום יחסי).
-אל תשמיט שום פרט שמופיע במידע על הסניף.
-אל תמציא מידע שלא נמצא במידע למעלה.
-אל תעטוף את התשובה במרכאות. אל תוסיף כותרות. פשוט כתוב את התשובה ישירות.
-אל תכתוב "שלום!" בתחילת כל תשובה. תהיה ישיר אבל חם.
-
-כללי עיצוב תשובה:
-- כשיש קישורים (Waze, Moovit, אתר) - תמיד שים כל קישור בשורה נפרדת משלו
-- קישורים תמיד צריכים להיות בשורה נפרדת עם תווית בעברית לפני הקישור, למשל:
-  ניווט בוויז:
-  https://tinyurl.com/optistore-tlv
-  ניווט במוביט:
-  https://tinyurl.com/moovit-optistoretlv
-- לא לערבב עברית ואנגלית באותה שורה
-- לשמור על מבנה נקי וקריא
-
-השאלה של הנציג/ה:
-${question}`;
-
-  try {
-    const answer = await callGroqRaw(apiKey, [
-      { role: 'system', content: 'אתה עוזר חברי וחם לנציגי שירות לקוחות של אופטיסטור. ענה כאילו אתה קולגה ותיק שעוזר לחבר בצוות. תשתמש בשפה טבעית וחמה, לא רובוטית. אל תמציא מידע.' },
-      { role: 'user', content: prompt }
-    ], 0.3, 1024);
-
-    // Make URLs clickable
-    const escaped = answer.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    const withLinks = escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--accent);word-break:break-all;">$1</a>');
-    answerText.innerHTML = withLinks;
-    answerEl.classList.add('visible');
-    answerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } catch (err) {
-    answerText.textContent = err.message || 'שגיאה. נסו שוב.';
-    answerEl.classList.add('visible');
-  } finally {
-    btn.classList.remove('loading');
-    btn.disabled = !document.getElementById('askInput').value.trim();
-  }
-}
-
-function quickAsk(question) {
-  document.getElementById('askInput').value = question;
-  document.getElementById('askBtn').disabled = false;
-  askQuestion();
-}
-
-async function copyAnswer(btn) {
-  const text = document.getElementById('askAnswerText').textContent;
-  try {
-    await navigator.clipboard.writeText(text);
-    btn.textContent = '✅ הועתק!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = '📋 העתק'; btn.classList.remove('copied'); }, 2000);
-  } catch {
-    const range = document.createRange();
-    range.selectNodeContents(document.getElementById('askAnswerText'));
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-  }
-}
 </script>
 </body>
 </html>
