@@ -99,10 +99,13 @@
 
     .card {
       background: var(--bg-card);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 24px;
       border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: box-shadow 0.3s, transform 0.2s;
     }
+    .card:hover { box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12); }
 
     /* Color coding for sections */
     .card-blue {
@@ -134,10 +137,10 @@
     [data-theme="light"] .card-emerald .card-label { color: #059669; }
 
     .card-label {
-      font-size: 13px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -147,19 +150,19 @@
       width: 100%;
       min-height: 160px;
       background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
       color: var(--text);
       font-family: 'Noto Sans Hebrew', sans-serif;
       font-size: 16px;
-      line-height: 1.7;
+      line-height: 1.75;
       resize: vertical;
       direction: rtl;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    textarea:focus { outline: none; border-color: var(--accent); }
+    textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15); }
     textarea::placeholder { color: var(--text-dim); }
 
     .gender-buttons {
@@ -187,33 +190,37 @@
 
     .gender-btn .emoji { font-size: 24px; }
     .gender-btn .btn-logo { width: 28px; height: 28px; object-fit: contain; }
-    .gender-btn:hover { border-color: var(--accent); color: var(--text); }
+    .gender-btn:hover { border-color: var(--accent); color: var(--text); transform: translateY(-1px); }
 
     .gender-btn.active {
       border-color: var(--accent);
-      background: rgba(96, 165, 250, 0.1);
+      background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(167, 139, 250, 0.08));
       color: var(--accent);
+      box-shadow: 0 2px 12px rgba(96, 165, 250, 0.2);
     }
 
     .submit-btn {
       width: 100%;
-      padding: 16px;
-      border-radius: 12px;
+      padding: 18px;
+      border-radius: 14px;
       border: none;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+      background-size: 200% 200%;
       color: white;
       font-family: 'Noto Sans Hebrew', sans-serif;
-      font-size: 17px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+      letter-spacing: 0.3px;
     }
 
-    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); }
+    .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(59, 130, 246, 0.4); background-position: 100% 100%; }
     .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
     .submit-btn .spinner {
@@ -235,20 +242,39 @@
     .result-text {
       width: 100%;
       min-height: 120px;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.04), rgba(96, 165, 250, 0.04));
+      border: 1.5px solid rgba(34, 197, 94, 0.25);
+      border-radius: 14px;
+      padding: 20px;
       color: var(--text);
       font-family: 'Noto Sans Hebrew', sans-serif;
       font-size: 16px;
-      line-height: 1.7;
+      line-height: 1.85;
       direction: rtl;
       white-space: pre-wrap;
+    }
+    [data-theme="light"] .result-text {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.06), rgba(96, 165, 250, 0.06));
     }
 
 
     /* UTM Builder */
+    .utm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .utm-toggle {
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: transform 0.2s, color 0.2s;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .utm-header:hover .utm-toggle { color: var(--accent); background: rgba(96, 165, 250, 0.1); }
+
     .utm-result {
       display: none;
       margin-top: 12px;
@@ -283,16 +309,20 @@
     .coaching-card.visible { display: block; }
 
     .coaching-box {
-      background: rgba(251, 191, 36, 0.06);
-      border: 1px solid rgba(251, 191, 36, 0.25);
-      border-radius: 12px;
-      padding: 16px;
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(167, 139, 250, 0.06));
+      border: 1.5px solid rgba(251, 191, 36, 0.3);
+      border-right: 4px solid #fbbf24;
+      border-radius: 14px;
+      padding: 18px 20px;
       direction: rtl;
       text-align: right;
-      line-height: 1.8;
-      font-size: 14px;
+      line-height: 1.85;
+      font-size: 15px;
       color: var(--text);
       white-space: pre-wrap;
+    }
+    [data-theme="light"] .coaching-box {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(167, 139, 250, 0.08));
     }
 
     /* Input fields */
@@ -949,57 +979,62 @@
     <div id="toolSection">
 
     <div class="two-columns">
-      <!-- Left column: UTM Builder -->
+      <!-- Left column: UTM Builder (collapsible) -->
       <div style="display: flex; flex-direction: column; gap: 20px; order: 2;">
-        <div class="card card-emerald">
-          <div class="card-label">🔗 בונה קישורים עם UTM</div>
-
-          <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן את כתובת הקישור (URL)" dir="rtl" style="text-align: right; margin-bottom: 12px; width: 100%;">
-
-          <div class="card-label" style="font-size: 12px; margin-bottom: 6px;">📡 פלטפורמה (ממלא אוטומטית)</div>
-          <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('instagram_story', this)">
-              <img src="instagram-logo.png" class="btn-logo"> אינסטגרם סטורי
-            </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('instagram_dm', this)">
-              <img src="instagram-logo.png" class="btn-logo"> אינסטגרם דיירקט
-            </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('facebook_dm', this)">
-              <img src="facebook-logo.png" class="btn-logo"> פייסבוק דיירקט
-            </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('whatsapp', this)">
-              <img src="whatsapp-logo.png" class="btn-logo"> וואטסאפ
-            </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('email', this)">
-              <img src="email-logo.webp" class="btn-logo"> אימייל
-            </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('tiktok', this)">
-              <img src="tiktok-logo.png" class="btn-logo"> טיקטוק
-            </button>
-            <button class="gender-btn utm-btn" onclick="applyUTMPreset('youtube', this)">
-              <img src="youtube-logo.png" class="btn-logo"> יוטיוב
-            </button>
+        <div class="card card-emerald" id="utmCard">
+          <div class="utm-header" onclick="toggleUTM()">
+            <div class="card-label" style="margin-bottom: 0; cursor: pointer;">🔗 בונה קישורים עם UTM</div>
+            <span class="utm-toggle" id="utmToggle">▼</span>
           </div>
 
-          <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px; direction: rtl;">
-            <div class="card-label" style="font-size: 12px; margin-bottom: 2px;">⚙️ פרמטרים (ניתן לערוך ידנית)</div>
-            <div style="display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; align-items: center; font-size: 13px;">
-              <label style="text-align: right; color: var(--text-muted);">Source</label>
-              <input type="text" class="ask-input utm-field" id="utmSource" placeholder="instagram / facebook / whatsapp" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
-              <label style="text-align: right; color: var(--text-muted);">Medium</label>
-              <input type="text" class="ask-input utm-field" id="utmMedium" placeholder="social / email / sms" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
-              <label style="text-align: right; color: var(--text-muted);">Campaign</label>
-              <input type="text" class="ask-input utm-field" id="utmCampaign" placeholder="summer_sale / new_collection" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
-              <label style="text-align: right; color: var(--text-muted);">Content</label>
-              <input type="text" class="ask-input utm-field" id="utmContent" placeholder="(אופציונלי) banner / link / cta" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+          <div class="utm-body" id="utmBody" style="display: none;">
+            <input type="text" class="ask-input" id="utmLinkInput" placeholder="הדביקו כאן את כתובת הקישור (URL)" dir="rtl" style="text-align: right; margin-top: 14px; margin-bottom: 12px; width: 100%;">
+
+            <div class="card-label" style="font-size: 12px; margin-bottom: 6px;">📡 פלטפורמה (ממלא אוטומטית)</div>
+            <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
+              <button class="gender-btn utm-btn" onclick="applyUTMPreset('instagram_story', this)">
+                <img src="instagram-logo.png" class="btn-logo"> אינסטגרם סטורי
+              </button>
+              <button class="gender-btn utm-btn" onclick="applyUTMPreset('instagram_dm', this)">
+                <img src="instagram-logo.png" class="btn-logo"> אינסטגרם דיירקט
+              </button>
+              <button class="gender-btn utm-btn" onclick="applyUTMPreset('facebook_dm', this)">
+                <img src="facebook-logo.png" class="btn-logo"> פייסבוק דיירקט
+              </button>
+              <button class="gender-btn utm-btn" onclick="applyUTMPreset('whatsapp', this)">
+                <img src="whatsapp-logo.png" class="btn-logo"> וואטסאפ
+              </button>
+              <button class="gender-btn utm-btn" onclick="applyUTMPreset('email', this)">
+                <img src="email-logo.webp" class="btn-logo"> אימייל
+              </button>
+              <button class="gender-btn utm-btn" onclick="applyUTMPreset('tiktok', this)">
+                <img src="tiktok-logo.png" class="btn-logo"> טיקטוק
+              </button>
+              <button class="gender-btn utm-btn" onclick="applyUTMPreset('youtube', this)">
+                <img src="youtube-logo.png" class="btn-logo"> יוטיוב
+              </button>
             </div>
-          </div>
 
-          <button class="action-btn" style="margin-top: 14px; width: 100%; text-align: center;" onclick="buildUTMFromFields()">🔗 בנה קישור</button>
+            <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px; direction: rtl;">
+              <div class="card-label" style="font-size: 12px; margin-bottom: 2px;">⚙️ פרמטרים (ניתן לערוך ידנית)</div>
+              <div style="display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; align-items: center; font-size: 13px;">
+                <label style="text-align: right; color: var(--text-muted);">Source</label>
+                <input type="text" class="ask-input utm-field" id="utmSource" placeholder="instagram / facebook / whatsapp" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+                <label style="text-align: right; color: var(--text-muted);">Medium</label>
+                <input type="text" class="ask-input utm-field" id="utmMedium" placeholder="social / email" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+                <label style="text-align: right; color: var(--text-muted);">Campaign</label>
+                <input type="text" class="ask-input utm-field" id="utmCampaign" placeholder="summer_sale / new_collection" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+                <label style="text-align: right; color: var(--text-muted);">Content</label>
+                <input type="text" class="ask-input utm-field" id="utmContent" placeholder="(אופציונלי) banner / link / cta" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+              </div>
+            </div>
 
-          <div class="utm-result" id="utmResult">
-            <div class="utm-link" id="utmLink"></div>
-            <button class="action-btn" id="utmCopyBtn" onclick="copyUTM()">📋 העתק קישור</button>
+            <button class="action-btn" style="margin-top: 14px; width: 100%; text-align: center;" onclick="buildUTMFromFields()">🔗 בנה קישור</button>
+
+            <div class="utm-result" id="utmResult">
+              <div class="utm-link" id="utmLink"></div>
+              <button class="action-btn" id="utmCopyBtn" onclick="copyUTM()">📋 העתק קישור</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1007,8 +1042,8 @@
       <!-- Right column: Message input -->
       <div style="display: flex; flex-direction: column; gap: 20px; order: 1;">
         <div class="card card-blue">
-          <div class="card-label">💬 מה הלקוח שאל/כתב? <span style="font-size: 12px; font-weight: 400; color: var(--text-dim);">(לא חובה - מסייע למערכת להבין את הקונטקסט)</span></div>
-          <textarea id="contextText" placeholder="הדביקו כאן את הודעת הלקוח כדי שהמערכת תתאים את התשובה..." style="min-height: 80px;"></textarea>
+          <div class="card-label">💬 מה הלקוח שאל/כתב? <span style="font-size: 12px; font-weight: 400; color: var(--text-dim); margin-right: 6px;">(לא חובה - אבל מאוד מסייע לקבל תשובה מדויקת)</span></div>
+          <textarea id="contextText" placeholder="הדביקו כאן את הודעת הלקוח - ככל שתתנו יותר קונטקסט, התשובה תהיה יותר מדויקת ומלאה..." style="min-height: 90px;"></textarea>
         </div>
 
         <div class="card card-blue">
@@ -1063,7 +1098,7 @@
     </div>
 
     <div class="card coaching-card" id="coachingCard">
-      <div class="card-label">🎯 פידבק מהמערכת</div>
+      <div class="card-label">💡 הערת קלוד <span style="font-size: 11px; font-weight: 400; color: var(--text-dim); margin-right: 6px;">(המלצה אישית לשיפור התשובה)</span></div>
       <div class="coaching-box" id="coachingBox"></div>
     </div>
 
@@ -1680,50 +1715,126 @@ async function callGroq(text, gender, platform, customerContext) {
   const platformInstruction = PLATFORM_PROMPTS[platform];
 
   const contextBlock = customerContext
-    ? `\nהקונטקסט - מה הלקוח כתב/שאל:\n"${customerContext}"\n\nחשוב מאוד:\n- קרא בעיון מה הלקוח שאל או ביקש\n- וודא שהתשובה המתוקנת עונה על כל מה שהלקוח שאל\n- אם הנציג לא ענה על חלק מהשאלה - הוסף תשובה מתאימה לפי המידע שיש לך\n- אם הלקוח שאל על סניף - וודא שיש כתובת, שעות, וקישורי ניווט\n- אם הלקוח שאל על מחיר - וודא שהתשובה כוללת מחיר או הפנייה למחיר\n- אם הלקוח שאל שאלה והנציג ענה על משהו אחר - תקן את התשובה כך שתענה על מה שנשאל\n`
+    ? `
+====== 🔴 קונטקסט - מה הלקוח כתב/שאל ======
+"${customerContext}"
+====== סוף קונטקסט ======
+
+⚠️ חובה להתייחס לקונטקסט הזה ברצינות מירבית:
+- קרא שוב ושוב את מה שהלקוח שאל
+- התשובה המתוקנת חייבת לענות באופן מלא ומקיף על כל מה שהלקוח שאל
+- אם הלקוח שאל על כתובת סניף - חובה להחזיר כתובת + שעות + קישורי ניווט (Waze + Moovit)
+- אם הלקוח שאל על מחיר - חובה להחזיר מחיר או הפנייה למחיר
+- אם הלקוח שאל על דגם ספציפי - חובה להחמיא לדגם ("איזה טעם מעולה!", "דגם מהמם!", "הדגם הזה ממש יפה!") וגם לתת מענה מלא
+- אם הלקוח כתב את שמו - פנה אליו בשם בפתיחה ("היי [שם]")
+- אם הנציג לא ענה על חלק מהשאלה - השלם את התשובה מהמידע שיש במערכת
+- אם הנציג ענה על משהו אחר ממה שנשאל - תקן שתענה על השאלה האמיתית
+`
     : '';
 
-  const prompt = `אתה עורך טקסט מקצועי בעברית עבור שירות לקוחות של רשת אופטיקה "אופטיסטור".
+  const prompt = `אתה עורך תשובות שירות לקוחות של רשת אופטיקה יוקרתית "אופטיסטור".
 
-תפקידך: לקבל טקסט של נציג/ת שירות ולהחזיר גרסה מתוקנת ומשופרת.
+🎯 הפילוסופיה שלנו:
+אנחנו מתייחסים לכל לקוח כאילו הוא בן משפחה שלנו. אף פעם לא נותנים תשובה חלקית - תמיד תשובה מלאה, חמה ומקצועית. אנחנו מדברים בצורה חיובית, לא שלילית. מתחילים ממה שיש, לא ממה שאין.
 
+📚 מידע על החברה:
 ${SERVICE_GUIDELINES}
 ${contextBlock}
-כללי עריכה:
-1. תקן שגיאות כתיב ודקדוק (כולל ה' הידיעה חסרה, אותיות כפולות וכו')
-2. שפר ניסוח כשהוא לא ברור או לא מקצועי
-3. ${genderInstruction}
 
-טון לפי פלטפורמה:
-4. ${platformInstruction}
+====== 🌟 דוגמאות לתשובות מצוינות של הקולגות שלנו (חקה את הסגנון!) ======
 
-חשוב מאוד - מגדר הנציג/ת:
-5. כשהנציג/ת כותב/ת על עצמו/ה (אני יכולה, אני יכול, בדקתי, שלחתי, אשמח) - אל תשנה את המגדר! זה המגדר האמיתי של הכותב/ת.
-   - אם כתוב "אני יכולה לבדוק" - השאר "אני יכולה לבדוק" (הנציגה היא אישה)
-   - אם כתוב "אני יכול לבדוק" - השאר "אני יכול לבדוק" (הנציג הוא גבר)
-   - שנה מגדר רק בפנייה ללקוח (אתה/את, מוזמן/מוזמנת, תרשום/תרשמי)
+דוגמה 1 - לקוחה שאלה על קופונים:
+"אצלנו באופטיסטור אנחנו לא מאמינים בקופונים חד-פעמיים. במקום זה, אנחנו מציעים מראש את המחיר הכי טוב שיש - כל יום, בלי שצריך לחפש קודים. כחברת מועדון, את נהנית מהנחה נוספת מעל המחיר הטוב הזה, מה שהופך את הקנייה למשתלמת אפילו יותר. ברגע שתשווי מחירים עם כל חנות אחרת, תראי את זה בעצמך! 🩷"
 
-6. אם ההודעה מתחילה עם "לצערי" או עם מה שאין - שנה כך שיתחיל עם מה שכן יש
-7. אם חסרה סיומת מזמינה (כמו "נשמח לעזור בכל שאלה") - הוסף אחת קצרה ומתאימה
-8. שמור על המשמעות המקורית
-9. החזר רק את הטקסט המתוקן, בלי הסברים ובלי הערות
-10. כללי עיצוב קישורים - חשוב מאוד!
-   - לעולם אל תערבב עברית ואנגלית באותה שורה
-   - קישורים (Waze, Moovit, אתר) תמיד בשורה נפרדת משלהם
-   - לפני כל קישור שים תווית בעברית בשורה נפרדת, למשל:
-     ניווט בוויז:
-     https://tinyurl.com/optistore-tlv
-     ניווט במוביט:
-     https://tinyurl.com/moovit-optistoretlv
-   - לא לכתוב "Waze:" או "Moovit:" באמצע משפט בעברית
+דוגמה 2 - לקוח שאל אם המוצרים מקוריים:
+"אנחנו יודעים שזה נשמע כמעט בלתי אפשרי - אבל המחירים שלנו באמת כאלה! הסיבה? אנחנו עובדים ישירות מול היבואן הרשמי, בלי מתווכים, ולכן אנחנו יכולים להציע את המחירים הנמוכים ביותר בארץ. כל זוג שאנחנו מוכרים מגיע עם תעודת אחריות מקורית מהיצרן - ומוזמן לבדוק אותנו, גם באתר וגם בסניפים 🩷"
 
-הטקסט לתיקון:
+דוגמה 3 - לקוחה שאלה על דגם GUCCI:
+"היי משי, מה שלומך? איזה טעם מעולה יש לך! המסגרת הזאת באמת מהממת. כרגע הדגם בהזמנה אצל היבואן - קולקציה חדשה 2025, צפויה להגיע בעוד כחודש. אשמח לשמור לך מקום ברשימת ההמתנה! שלחי לי את מספר הטלפון שלך ואדאג ליידע אותך ברגע שנוחתות אצלנו."
+
+דוגמה 4 - לקוח ביקש הנחה נוספת:
+"היי אלי, אנחנו מעריכים אותך מאוד כלקוח, ותמיד רוצים לתת לך את ההנחה הכי טובה. במקרה הזה המחיר כבר מהנמוכים ביותר בשוק, ולכן אין אפשרות לרדת יותר. נשמח שתשווה מחירים ותראה בעצמך. כשיש אפשרות - אנחנו תמיד עושים את המקסימום עבורך!"
+
+דוגמה 5 - לקוחה מרוצה שלחה פידבק:
+"צופית היקרה, התמלאנו התרגשות לקרוא את ההודעה שלך. אין דבר שמשמח אותנו יותר מלשמוע שלקוחה חוותה חוויית שירות ומקצועיות שמגיע לה באמת. החיזוק הזה ממלא אותנו גאווה ומזכיר לנו למה אנחנו עושים את מה שאנחנו עושים - באהבה, באכפתיות ובסטנדרטים הכי גבוהים."
+
+דוגמה 6 - השוואת מחירים:
+"באופטיסטור תוכלי למצוא את המותגים המובילים בעולם - גוצ'י, בלנסיאגה, דיור, איב סן לורן וכמובן גם רייבאן ומותגים נוספים במחירים משתלמים במיוחד. אם תשווי כל דגם שקיים אצלנו לדגם זהה ברשתות אחרות (חיפוש קצר בגוגל יספיק), תגלי שאנחנו מציעים גם את המחיר הטוב ביותר וגם קאשבק נוסף. נשמח לעמוד לשירותך תמיד 🩷"
+
+====== 📋 כללי העריכה שלך ======
+
+🔤 כתיב ודקדוק - עבוד בקפידה:
+• תקן כל שגיאת כתיב (אפילו אחת קטנה - ה' הידיעה, וי"ו חיבור, אותיות כפולות, ט/ת, כ/ק, ח/כ)
+• תקן טעויות הקלדה (אותיות הפוכות, רווחים מיותרים)
+• תקן דקדוק שבור (זכר/נקבה, יחיד/רבים, זמנים)
+• תקן ניסוח עילג ("יש לי רצון" → "הייתי רוצה")
+
+💬 פילוסופיית התשובה:
+• התייחס ללקוח כאל בן משפחה - חם, קשוב, דואג
+• תשובה מלאה תמיד - אף פעם לא חלקית! אם חסר משהו - השלם מהמידע שיש
+• חיובי, לא שלילי - במקום "אין לנו X" → "יש לנו Y שיכול להתאים"
+• אל תתחיל עם "לצערי", "לא", "אין" - תתחיל ממה שכן יש
+• אם הלקוח הזכיר דגם ספציפי - חובה להחמיא לו ("איזה טעם מעולה!", "דגם מהמם!", "בחירה נפלאה!")
+• פנה בשם אם יש שם
+• סיים בקריאה לפעולה או הזמנה להמשך שיחה
+
+🎭 ${genderInstruction}
+
+📱 ${platformInstruction}
+
+👤 מגדר הכותב/ת (חשוב מאוד!):
+• כשהנציג/ה כותב/ת על עצמו/ה (אני יכולה/יכול, בדקתי, שלחתי, אשמח) - אל תשנה את המגדר!
+• שנה מגדר רק בפנייה ללקוח (אתה/את, מוזמן/מוזמנת)
+
+🔗 עיצוב קישורים:
+• כל קישור בשורה נפרדת
+• לפני כל קישור - תווית בעברית בשורה נפרדת. דוגמה:
+  ניווט בוויז:
+  https://tinyurl.com/optistore-tlv
+  ניווט במוביט:
+  https://tinyurl.com/moovit-optistoretlv
+• לא לערבב עברית ואנגלית באותה שורה
+
+✨ סגנון:
+• אנושי, חם, לא רובוטי
+• אמוג'י בשימוש מדוד (1-3 להודעה, לא יותר)
+• לא משפטים ארוכים מדי
+• ללא "שלום!" חובה בפתיחה - עדיף "היי [שם]" או ישר לעניין בחום
+
+====== 📤 פורמט התשובה שלך ======
+
+חובה להחזיר בדיוק בפורמט הזה:
+
+###CORRECTED###
+[הטקסט המתוקן המלא, מוכן להעתקה ושליחה ללקוח]
+###TIP###
+[2-3 משפטים קצרים בעברית - המלצה שלך מה עוד כדאי להוסיף/לשים לב אליו לשיפור התשובה, או מה הערך המוסף שהוספת. בגוף ראשון, כמו קולגה מנוסה שנותן עצה. לא להיות רובוטי.]
+###END###
+
+====== הטקסט המקורי של הנציג/ה לתיקון ======
 ${text}`;
 
   return callGroqRaw(apiKey, [
-    { role: 'system', content: 'אתה מתקן כתיב ודקדוק בעברית לפי כללי שירות הלקוחות של אופטיסטור. החזר רק את הטקסט המתוקן, ללא הסברים.' },
+    { role: 'system', content: 'אתה עוזר שירות לקוחות מוביל של אופטיסטור. אתה מתקן כתיב, משפר ניסוח, ומוסיף חום ומקצועיות. אתה עוקב בדיוק אחר הפורמט המבוקש עם ###CORRECTED### ו-###TIP###. עברית רהוטה וטבעית.' },
     { role: 'user', content: prompt }
-  ], 0.1, 2048);
+  ], 0.3, 2048);
+}
+
+// Parses the AI response into {corrected, tip}
+function parseAIResponse(raw) {
+  const correctedMatch = raw.match(/###CORRECTED###([\s\S]*?)###TIP###/);
+  const tipMatch = raw.match(/###TIP###([\s\S]*?)(###END###|$)/);
+  if (correctedMatch && tipMatch) {
+    return {
+      corrected: correctedMatch[1].trim(),
+      tip: tipMatch[1].trim()
+    };
+  }
+  // Fallback: whole text is the corrected version
+  return {
+    corrected: raw.replace(/###\w+###/g, '').trim(),
+    tip: ''
+  };
 }
 
 
@@ -1807,11 +1918,22 @@ async function correctText() {
   try {
     const customerContext = document.getElementById('contextText').value.trim();
 
-    // Run correction only (single API call to stay within rate limits)
-    const corrected = await callGroq(text, selectedGender, selectedPlatform, customerContext);
+    // Run correction (single API call returns both corrected text + Claude's tip)
+    const rawResponse = await callGroq(text, selectedGender, selectedPlatform, customerContext);
+    const { corrected, tip } = parseAIResponse(rawResponse);
 
     document.getElementById('resultText').textContent = corrected;
     document.getElementById('resultCard').classList.add('visible');
+
+    // Show Claude's tip if present
+    const tipCard = document.getElementById('coachingCard');
+    const tipBox = document.getElementById('coachingBox');
+    if (tip && tip.length > 3) {
+      tipBox.textContent = tip;
+      tipCard.classList.add('visible');
+    } else {
+      tipCard.classList.remove('visible');
+    }
 
     document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -1837,6 +1959,15 @@ async function correctText() {
 }
 
 // ==================== UTM BUILDER ====================
+
+function toggleUTM() {
+  const body = document.getElementById('utmBody');
+  const toggle = document.getElementById('utmToggle');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  toggle.textContent = isOpen ? '▼' : '▲';
+}
+
 
 const UTM_PRESETS = {
   instagram_story: { source: 'instagram', medium: 'social', campaign: 'instagram_story' },
