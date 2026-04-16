@@ -503,6 +503,56 @@
       line-height: 1.5;
     }
 
+    /* Provider selector */
+    .provider-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .provider-btn {
+      padding: 12px 8px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Noto Sans Hebrew', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .provider-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .provider-btn .p-emoji { font-size: 22px; line-height: 1; }
+    .provider-btn .p-label { font-size: 12px; font-weight: 600; }
+    .provider-btn.active {
+      border-color: transparent;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+    }
+    .provider-hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      min-height: 16px;
+    }
+    .provider-status {
+      text-align: center;
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+    @media (max-width: 500px) {
+      .provider-buttons { grid-template-columns: 1fr; }
+    }
+
     /* Settings gear */
     .theme-btn, .settings-btn {
       position: fixed;
@@ -835,30 +885,48 @@
   <!-- API Key Setup Overlay -->
   <div class="setup-overlay" id="setupOverlay">
     <div class="setup-card">
-      <h2>הגדרה ראשונית (פעם אחת)</h2>
-      <div class="subtitle">צריך מפתח חינמי מ-Groq כדי שה-AI יתקן את הטקסט</div>
+      <h2>הגדרות AI</h2>
+      <div class="subtitle">בחרו ספק AI והכניסו את המפתח שלו. ניתן לשמור מפתחות שונים ולעבור ביניהם בכל רגע.</div>
+
+      <div class="provider-buttons">
+        <button class="provider-btn" data-provider="groq" onclick="onProviderChange('groq')">
+          <span class="p-emoji">⚡</span>
+          <span class="p-label">Groq</span>
+        </button>
+        <button class="provider-btn" data-provider="claude" onclick="onProviderChange('claude')">
+          <span class="p-emoji">🧠</span>
+          <span class="p-label">Claude</span>
+        </button>
+        <button class="provider-btn" data-provider="gemini" onclick="onProviderChange('gemini')">
+          <span class="p-emoji">✨</span>
+          <span class="p-label">Gemini</span>
+        </button>
+      </div>
+
+      <div class="provider-hint" id="providerHint"></div>
 
       <div class="setup-steps">
         <div class="setup-step">
           <div class="step-num">1</div>
           <div class="step-text">
-            היכנסו ל-<a href="https://console.groq.com/keys" target="_blank">Groq Console</a>
-            (הירשמו בחינם עם Google)
+            היכנסו ל-<a id="providerConsoleLink" href="https://console.groq.com/keys" target="_blank">Groq Console</a>
+            (נדרשת הרשמה בחינם)
           </div>
         </div>
         <div class="setup-step">
           <div class="step-num">2</div>
-          <div class="step-text">לחצו על <strong>"Create API Key"</strong> ותנו שם כלשהו</div>
+          <div class="step-text">צרו מפתח API חדש והעתיקו אותו</div>
         </div>
         <div class="setup-step">
           <div class="step-num">3</div>
-          <div class="step-text">העתיקו את המפתח והדביקו אותו כאן למטה</div>
+          <div class="step-text">הדביקו את המפתח כאן למטה ולחצו "שמור"</div>
         </div>
       </div>
 
       <input type="password" class="key-input" id="apiKeyInput" placeholder="gsk_..." dir="ltr">
       <button class="setup-btn" id="saveKeyBtn" onclick="saveApiKey()" disabled>שמור והתחל</button>
-      <div class="setup-note">המפתח נשמר רק בדפדפן שלכם ולא נשלח לשום מקום חוץ מ-Groq</div>
+      <div class="provider-status" id="providerStatus"></div>
+      <div class="setup-note">המפתחות נשמרים רק בדפדפן שלכם ולא נשלחים לשום מקום מלבד ספק ה-AI שנבחר</div>
 
       <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
         <h3 style="margin-bottom: 12px; font-size: 16px;">📊 לוגים משותפים (Google Apps Script)</h3>
@@ -1394,19 +1462,96 @@ function toggleTheme() {
 
 initTheme();
 
-// ==================== API KEY MANAGEMENT ====================
+// ==================== API KEY MANAGEMENT (multi-provider) ====================
 
+// Legacy name kept for backwards compatibility - stores the Groq key
 const STORAGE_KEY = 'spell-checker-gemini-key';
+const CLAUDE_KEY_STORAGE = 'spell-checker-claude-key';
+const GEMINI_KEY_STORAGE = 'spell-checker-gemini-key-v2';
+const PROVIDER_STORAGE = 'spell-checker-provider';
 
-function getApiKey() {
-  return localStorage.getItem(STORAGE_KEY) || '';
+const PROVIDERS = {
+  groq: {
+    label: 'Groq (Llama 3.3)',
+    emoji: '⚡',
+    storageKey: STORAGE_KEY,
+    placeholder: 'gsk_...',
+    consoleUrl: 'https://console.groq.com/keys',
+    consoleName: 'Groq Console',
+    hint: 'חינם, מהיר, בינוני בעברית',
+  },
+  claude: {
+    label: 'Claude (Anthropic)',
+    emoji: '🧠',
+    storageKey: CLAUDE_KEY_STORAGE,
+    placeholder: 'sk-ant-...',
+    consoleUrl: 'https://console.anthropic.com/settings/keys',
+    consoleName: 'Anthropic Console',
+    hint: 'הכי חכם בעברית, בתשלום (זול מאוד)',
+  },
+  gemini: {
+    label: 'Gemini (Google)',
+    emoji: '✨',
+    storageKey: GEMINI_KEY_STORAGE,
+    placeholder: 'AIza...',
+    consoleUrl: 'https://aistudio.google.com/apikey',
+    consoleName: 'Google AI Studio',
+    hint: 'חזק וזול, ייתכן חסום באירופה',
+  },
+};
+
+function getProvider() {
+  return localStorage.getItem(PROVIDER_STORAGE) || 'groq';
+}
+
+function setProvider(p) {
+  localStorage.setItem(PROVIDER_STORAGE, p);
+}
+
+function getApiKey(provider) {
+  const p = provider || getProvider();
+  return localStorage.getItem(PROVIDERS[p].storageKey) || '';
 }
 
 function saveApiKey() {
   const key = document.getElementById('apiKeyInput').value.trim();
   if (!key) return;
-  localStorage.setItem(STORAGE_KEY, key);
+  const provider = getProvider();
+  localStorage.setItem(PROVIDERS[provider].storageKey, key);
   document.getElementById('setupOverlay').classList.add('hidden');
+}
+
+function onProviderChange(p) {
+  setProvider(p);
+  renderProviderUI();
+}
+
+function renderProviderUI() {
+  const provider = getProvider();
+  const info = PROVIDERS[provider];
+
+  // Update active button
+  document.querySelectorAll('.provider-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.provider === provider);
+  });
+
+  // Update input, console link, hint
+  document.getElementById('apiKeyInput').placeholder = info.placeholder;
+  document.getElementById('apiKeyInput').value = getApiKey(provider);
+  document.getElementById('saveKeyBtn').disabled = !getApiKey(provider);
+  const consoleLink = document.getElementById('providerConsoleLink');
+  if (consoleLink) {
+    consoleLink.href = info.consoleUrl;
+    consoleLink.textContent = info.consoleName;
+  }
+  const hint = document.getElementById('providerHint');
+  if (hint) hint.textContent = info.hint;
+
+  const statusEl = document.getElementById('providerStatus');
+  if (statusEl) {
+    statusEl.textContent = getApiKey(provider) ? `✅ ${info.label} מחובר` : `⚠️ הכניסו מפתח ${info.label}`;
+    statusEl.style.color = getApiKey(provider) ? '#22c55e' : '#fbbf24';
+  }
 }
 
 const SETTINGS_PASSWORD = 'Igor2525';
@@ -1440,11 +1585,10 @@ document.getElementById('pwdInput').addEventListener('keydown', (e) => {
 });
 
 function showSetup() {
-  document.getElementById('apiKeyInput').value = getApiKey();
+  renderProviderUI();
   document.getElementById('appsScriptUrlInput').value = APPS_SCRIPT_URL;
   document.getElementById('appsScriptStatus').textContent = APPS_SCRIPT_URL ? '✅ מחובר' : '';
   document.getElementById('setupOverlay').classList.remove('hidden');
-  document.getElementById('saveKeyBtn').disabled = !getApiKey();
   // Reset password folder to locked state
   document.getElementById('pwdFolderLocked').style.display = 'flex';
   document.getElementById('pwdFolderContent').style.display = 'none';
@@ -1504,8 +1648,9 @@ document.getElementById('apiKeyInput').addEventListener('input', (e) => {
   document.getElementById('saveKeyBtn').disabled = !e.target.value.trim();
 });
 
-// On load: show setup if no key
+// On load: show setup if no key for current provider
 if (!getApiKey()) {
+  renderProviderUI();
   document.getElementById('setupOverlay').classList.remove('hidden');
 } else {
   document.getElementById('setupOverlay').classList.add('hidden');
@@ -1663,6 +1808,36 @@ SERVICE_GUIDELINES = `מידע על אופטיסטור:
 // Load data from Sheets on startup
 loadFromSheets();
 
+// ============ AI ROUTING (Groq / Claude / Gemini) ============
+
+async function callAI(messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
+  const provider = getProvider();
+  const apiKey = getApiKey(provider);
+  if (!apiKey) {
+    showSetup();
+    throw new Error('No API key');
+  }
+  if (provider === 'claude') return callClaude(apiKey, messages, temperature, maxTokens, retries);
+  if (provider === 'gemini') return callGemini(apiKey, messages, temperature, maxTokens, retries);
+  return callGroqRaw(apiKey, messages, temperature, maxTokens, retries);
+}
+
+// Helper: split OpenAI-style messages into {system, user} for providers that separate them
+function splitSystemUser(messages) {
+  const systemMsgs = messages.filter(m => m.role === 'system').map(m => m.content);
+  const userMsgs = messages.filter(m => m.role !== 'system');
+  return {
+    system: systemMsgs.join('\n\n'),
+    messages: userMsgs,
+  };
+}
+
+async function handleAuthError(provider) {
+  localStorage.removeItem(PROVIDERS[provider].storageKey);
+  showSetup();
+  throw new Error(`מפתח ${PROVIDERS[provider].label} לא תקין. הכניסו מפתח חדש.`);
+}
+
 async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1683,30 +1858,122 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
       const err = await res.json().catch(() => ({}));
       const msg = err.error?.message || '';
       if (res.status === 401) {
-        localStorage.removeItem(STORAGE_KEY);
-        showSetup();
-        throw new Error('מפתח API לא תקין. הכניסו מפתח חדש.');
+        await handleAuthError('groq');
       }
       if (res.status === 429) {
         if (attempt < retries) {
           await new Promise(r => setTimeout(r, attempt * 2000));
           continue;
         }
-        throw new Error('יותר מדי בקשות. המתינו כמה שניות ונסו שוב.');
+        throw new Error('יותר מדי בקשות ל-Groq. המתינו כמה שניות ונסו שוב.');
       }
-      throw new Error(msg || 'שגיאה בתקשורת. נסו שוב.');
+      throw new Error(msg || 'שגיאה בתקשורת עם Groq. נסו שוב.');
     }
 
     const data = await res.json();
     const result = data.choices?.[0]?.message?.content;
-    if (!result) throw new Error('לא התקבלה תשובה. נסו שוב.');
+    if (!result) throw new Error('לא התקבלה תשובה מ-Groq. נסו שוב.');
+    return result.trim();
+  }
+}
+
+async function callClaude(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
+  const { system, messages: userMsgs } = splitSystemUser(messages);
+  const body = {
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: maxTokens,
+    temperature,
+    messages: userMsgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
+  };
+  if (system) body.system = system;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err.error?.message || '';
+      if (res.status === 401 || res.status === 403) {
+        await handleAuthError('claude');
+      }
+      if (res.status === 429 || res.status === 529) {
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, attempt * 2000));
+          continue;
+        }
+        throw new Error('יותר מדי בקשות ל-Claude. המתינו כמה שניות ונסו שוב.');
+      }
+      throw new Error(msg || 'שגיאה בתקשורת עם Claude. נסו שוב.');
+    }
+
+    const data = await res.json();
+    const result = data.content?.[0]?.text;
+    if (!result) throw new Error('לא התקבלה תשובה מ-Claude. נסו שוב.');
+    return result.trim();
+  }
+}
+
+async function callGemini(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
+  const { system, messages: userMsgs } = splitSystemUser(messages);
+  const contents = userMsgs.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+  const body = {
+    contents,
+    generationConfig: {
+      temperature,
+      maxOutputTokens: maxTokens,
+    },
+  };
+  if (system) body.systemInstruction = { parts: [{ text: system }] };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err.error?.message || '';
+      if (res.status === 400 && /api key/i.test(msg)) {
+        await handleAuthError('gemini');
+      }
+      if (res.status === 401 || res.status === 403) {
+        await handleAuthError('gemini');
+      }
+      if (res.status === 429) {
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, attempt * 2000));
+          continue;
+        }
+        throw new Error('יותר מדי בקשות ל-Gemini. המתינו כמה שניות ונסו שוב.');
+      }
+      throw new Error(msg || 'שגיאה בתקשורת עם Gemini. נסו שוב.');
+    }
+
+    const data = await res.json();
+    const result = data.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('\n');
+    if (!result) throw new Error('לא התקבלה תשובה מ-Gemini. נסו שוב.');
     return result.trim();
   }
 }
 
 async function callGroq(text, gender, platform, customerContext) {
-  const apiKey = getApiKey();
-  if (!apiKey) {
+  if (!getApiKey()) {
     showSetup();
     throw new Error('No API key');
   }
@@ -1813,7 +2080,7 @@ ${platformInstruction}
 
 זכור: ${G.label} בפנייה ללקוח. בן משפחה, לא רובוט. תשובה מלאה.`;
 
-  return callGroqRaw(apiKey, [
+  return callAI([
     { role: 'system', content: `אתה עוזר שירות לקוחות אנושי וחם של אופטיסטור. אתה כותב בעברית רהוטה וטבעית כמו שמדברים באמת - לא רובוטית ולא רשמית מדי. הכי חשוב: המגדר של הלקוח/ה בפנייה חייב להיות נכון תמיד. הלקוח הנוכחי הוא ${G.label}, לכן כל פנייה ללקוח ב${G.label} בלבד. אתה תמיד מחזיר בפורמט ###CORRECTED### ... ###TIP### ... ###END###` },
     { role: 'user', content: prompt }
   ], 0.4, 2048);
@@ -1838,8 +2105,7 @@ function parseAIResponse(raw) {
 
 
 async function analyzeResponse(agentText, customerText) {
-  const apiKey = getApiKey();
-  if (!apiKey || !customerText) return null;
+  if (!getApiKey() || !customerText) return null;
 
   const prompt = `אתה מאמן שירות לקוחות של רשת אופטיקה "אופטיסטור".
 
@@ -1866,7 +2132,7 @@ ${SERVICE_GUIDELINES}
 - לא לערבב עברית ואנגלית באותה שורה`;
 
   try {
-    return await callGroqRaw(apiKey, [
+    return await callAI([
       { role: 'system', content: 'אתה מאמן שירות לקוחות חברי ומעודד. עוזר לנציגים להשתפר. ענה בעברית בלבד. תהיה קצר וממוקד.' },
       { role: 'user', content: prompt }
     ], 0.3, 1024);
