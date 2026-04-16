@@ -1880,7 +1880,7 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
 async function callClaude(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
   const { system, messages: userMsgs } = splitSystemUser(messages);
   const body = {
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5',
     max_tokens: maxTokens,
     temperature,
     messages: userMsgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
