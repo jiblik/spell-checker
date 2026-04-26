@@ -1174,10 +1174,10 @@
 // ==================== USER SYSTEM ====================
 
 const USERS = {
-  igor:  { name: 'איגור', pass: 'Igor2525', role: 'admin', gender: null },
-  dudi:  { name: 'דודי', pass: 'Dudi2122', role: 'admin', gender: null },
-  gil:   { name: 'גיל', pass: 'Gil2221', role: 'admin', gender: null },
-  ori:   { name: 'אורי', pass: 'Ori2323', role: 'viewer', gender: null },
+  igor:  { name: 'איגור', pass: 'Igor2525', role: 'admin+agent', gender: null },
+  dudi:  { name: 'דודי', pass: 'Dudi2122', role: 'admin+agent', gender: null },
+  gil:   { name: 'גיל', pass: 'Gil2221', role: 'admin+agent', gender: null },
+  ori:   { name: 'אורי', pass: 'Ori2323', role: 'agent+viewer', gender: null },
   roi:   { name: 'רועי', pass: 'Roi7788', role: 'agent+viewer', gender: 'male' },
   tania: { name: 'טניה', pass: 'Tanya2423', role: 'agent', gender: 'female' },
   rivka: { name: 'רבקה', pass: 'Rebecca1313', role: 'agent', gender: 'female' },
@@ -1225,12 +1225,12 @@ function doLogout() {
 function applyLogin() {
   document.getElementById('loginOverlay').classList.add('hidden');
 
-  const canTool = ['admin', 'agent', 'agent+viewer'].includes(currentUser.role);
-  const canView = ['admin', 'viewer', 'agent+viewer'].includes(currentUser.role);
+  const canTool = ['admin', 'admin+agent', 'agent', 'agent+viewer'].includes(currentUser.role);
+  const canView = ['admin', 'admin+agent', 'viewer', 'agent+viewer'].includes(currentUser.role);
 
   // Show user badge
   const badge = document.getElementById('userBadge');
-  const roleLabels = { admin: 'מנהל', viewer: 'בקרה', agent: 'נציג/ה', 'agent+viewer': 'נציג + בקרה' };
+  const roleLabels = { admin: 'מנהל', 'admin+agent': 'מנהל + נציג', viewer: 'בקרה', agent: 'נציג/ה', 'agent+viewer': 'נציג + בקרה' };
   document.getElementById('userBadgeName').textContent = `${currentUser.name} (${roleLabels[currentUser.role] || ''})`;
   badge.style.display = 'flex';
 
@@ -1618,7 +1618,7 @@ function unlockPwdFolder() {
     document.getElementById('pwdFolderLocked').style.display = 'none';
     document.getElementById('pwdFolderError').style.display = 'none';
     document.getElementById('pwdFolderContent').style.display = 'block';
-    const roleMap = { admin: 'מנהל', viewer: 'צופה', agent: 'נציג/ה', 'agent+viewer': 'נציג/ה + צופה' };
+    const roleMap = { admin: 'מנהל', 'admin+agent': 'מנהל + נציג/ה', viewer: 'צופה', agent: 'נציג/ה', 'agent+viewer': 'נציג/ה + צופה' };
     const tbody = document.getElementById('usersPasswordTable');
     tbody.innerHTML = Object.values(USERS).map(u =>
       `<tr style="border-bottom:1px solid var(--border);">
