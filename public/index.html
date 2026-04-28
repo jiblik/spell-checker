@@ -506,7 +506,7 @@
     /* Provider selector */
     .provider-buttons {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-bottom: 14px;
     }
@@ -895,7 +895,11 @@
         </button>
         <button class="provider-btn" data-provider="claude" onclick="onProviderChange('claude')">
           <span class="p-emoji">🧠</span>
-          <span class="p-label">Claude</span>
+          <span class="p-label">Sonnet</span>
+        </button>
+        <button class="provider-btn" data-provider="claude-haiku" onclick="onProviderChange('claude-haiku')">
+          <span class="p-emoji">⚡🧠</span>
+          <span class="p-label">Haiku</span>
         </button>
         <button class="provider-btn" data-provider="gemini" onclick="onProviderChange('gemini')">
           <span class="p-emoji">✨</span>
@@ -1482,13 +1486,22 @@ const PROVIDERS = {
     hint: 'חינם, מהיר, בינוני בעברית',
   },
   claude: {
-    label: 'Claude (Anthropic)',
+    label: 'Claude Sonnet',
     emoji: '🧠',
     storageKey: CLAUDE_KEY_STORAGE,
     placeholder: 'sk-ant-...',
     consoleUrl: 'https://console.anthropic.com/settings/keys',
     consoleName: 'Anthropic Console',
-    hint: 'הכי חכם בעברית, בתשלום (זול מאוד)',
+    hint: 'הכי חכם בעברית, ~1¢ לשאלה עם caching',
+  },
+  'claude-haiku': {
+    label: 'Claude Haiku',
+    emoji: '⚡🧠',
+    storageKey: CLAUDE_KEY_STORAGE,  // same key as Claude Sonnet
+    placeholder: 'sk-ant-...',
+    consoleUrl: 'https://console.anthropic.com/settings/keys',
+    consoleName: 'Anthropic Console',
+    hint: 'מהיר וזול מאוד (~0.3¢ לשאלה), טוב בעברית',
   },
   gemini: {
     label: 'Gemini (Google)',
@@ -1996,7 +2009,8 @@ async function callAI(messages, temperature = 0.1, maxTokens = 2048, retries = 3
     showSetup();
     throw new Error('No API key');
   }
-  if (provider === 'claude') return callClaude(apiKey, messages, temperature, maxTokens, retries);
+  if (provider === 'claude') return callClaude(apiKey, messages, temperature, maxTokens, retries, 'claude-sonnet-4-5');
+  if (provider === 'claude-haiku') return callClaude(apiKey, messages, temperature, maxTokens, retries, 'claude-haiku-4');
   if (provider === 'gemini') return callGemini(apiKey, messages, temperature, maxTokens, retries);
   return callGroqRaw(apiKey, messages, temperature, maxTokens, retries);
 }
@@ -2056,15 +2070,21 @@ async function callGroqRaw(apiKey, messages, temperature = 0.1, maxTokens = 2048
   }
 }
 
-async function callClaude(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3) {
+async function callClaude(apiKey, messages, temperature = 0.1, maxTokens = 2048, retries = 3, model = 'claude-sonnet-4-5') {
   const { system, messages: userMsgs } = splitSystemUser(messages);
   const body = {
-    model: 'claude-sonnet-4-5',
+    model,
     max_tokens: maxTokens,
     temperature,
     messages: userMsgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
   };
-  if (system) body.system = system;
+  // Use prompt caching: the system message (knowledge base + rules) is static
+  // and gets cached for 5 minutes. Subsequent calls pay only 10% for cached tokens.
+  if (system) {
+    body.system = [
+      { type: 'text', text: system, cache_control: { type: 'ephemeral' } }
+    ];
+  }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2082,7 +2102,7 @@ async function callClaude(apiKey, messages, temperature = 0.1, maxTokens = 2048,
       const err = await res.json().catch(() => ({}));
       const msg = err.error?.message || '';
       if (res.status === 401 || res.status === 403) {
-        await handleAuthError('claude');
+        await handleAuthError(getProvider().startsWith('claude') ? getProvider() : 'claude');
       }
       if (res.status === 429 || res.status === 529) {
         if (attempt < retries) {
@@ -2192,27 +2212,16 @@ async function callGroq(text, gender, platform, customerContext) {
   // Detect if customer mentioned specific brand/model
   const modelMentioned = /gucci|prada|dior|balenciaga|miu\s*miu|rayban|ray-ban|versace|cartier|oakley|linda\s*farrow|saint\s*laurent|yves|גוצ|פראדה|דיור|בלנסיאגה|מיו|רייבן|רייבאן|ורסאצ|קרטייה|אוקלי|לינדה פארו|סן לורן|דולצ|armani|ארמני|fendi|פנדי|tom\s*ford|טום פורד/i.test((customerContext || '') + ' ' + text);
 
-  const prompt = `====== 🚨 כלל #1: מגדר הלקוח/ה (חובה מוחלטת!) ======
+  // ============ SPLIT: static (cacheable) vs dynamic ============
 
-הלקוח שאליו פונים הוא: ${G.label}
-לכן - כל פנייה ללקוח חייבת להיות ב${G.label}.
-
-✅ משתמש ב: ${G.you}, ${G.verbs}
-❌ אסור להשתמש ב: ${G.avoidVerbs}
-
-דוגמה לפתיח נכון ב${G.label}:
-"${G.example}"
-
-⚠️ לפני שאתה מחזיר את התשובה - עבור על כל מילה שמכוונת ללקוח (אתה/את, מוזמן/מוזמנת, תבחר/תבחרי וכו') וודא שהיא ב${G.label}. אם יש אפילו מילה אחת במגדר הלא נכון - תקן אותה מיד!
-
-שים לב: כשהנציג/ה כותב על עצמו ("אני יכולה", "בדקתי", "שלחתי") - אל תשנה את המגדר! זה המגדר של הכותב/ת. שנה רק פנייה ללקוח.
+  // STATIC system prompt - same for every request, gets cached by Claude
+  const staticSystem = `אתה עוזר שירות לקוחות אנושי וחם של אופטיסטור. אתה כותב בעברית רהוטה וטבעית כמו שמדברים באמת - לא רובוטית ולא רשמית מדי. אתה תמיד מחזיר בפורמט ###CORRECTED### ... ###TIP### ... ###END###
 
 ====== 📚 מידע על אופטיסטור ======
 ${SERVICE_GUIDELINES}
 
 ${KNOWLEDGE_BASE}
-${contextBlock}
-${modelMentioned ? '\n🌟 הלקוח/ה הזכיר/ה דגם ספציפי - חובה להחמיא לבחירה! ("איזה טעם מעולה!", "דגם מהמם!", "בחירה נפלאה!")\n' : ''}
+
 ====== 🚫 כלל חשוב: תקן, אל תכתוב מחדש! ======
 
 אתה מקבל טקסט שנציג/ה כבר כתב/ה. התפקיד שלך:
@@ -2242,35 +2251,38 @@ ${modelMentioned ? '\n🌟 הלקוח/ה הזכיר/ה דגם ספציפי - ח�
 • דקדוק שבור (זכר/נקבה, יחיד/רבים, הטיה שגויה)
 • ניסוח עילג - שפר אבל אל תשנה את הכוונה
 
-====== 📱 טון הפלטפורמה ======
-${platformInstruction}
-
 ====== 🔗 עיצוב קישורים (אם יש) ======
 • כל קישור בשורה נפרדת עם תווית בעברית בשורה מעליו
-• לדוגמה:
-  ניווט בוויז:
-  https://tinyurl.com/...
-• אסור לערבב עברית ואנגלית באותה שורה
+• אסור לערבב עברית ואנגלית באותה שורה`;
 
-====== 📤 פורמט החזרה (חובה!) ======
+  // DYNAMIC user prompt - changes per request (small, not cached)
+  const userPrompt = `====== 🚨 מגדר הלקוח/ה (חובה!) ======
 
-החזר בדיוק בפורמט הזה - בלי שום טקסט לפני או אחרי:
+הלקוח הנוכחי: ${G.label}
+✅ משתמש ב: ${G.you}, ${G.verbs}
+❌ אסור: ${G.avoidVerbs}
+דוגמה: "${G.example}"
 
+⚠️ בדוק כל מילה שמכוונת ללקוח - חייבת להיות ב${G.label}. כשהנציג/ה כותב/ת על עצמו - אל תשנה.
+${contextBlock}
+${modelMentioned ? '🌟 הלקוח/ה הזכיר/ה דגם ספציפי - חובה להחמיא לבחירה!\n' : ''}
+📱 טון: ${platformInstruction}
+
+📤 פורמט (חובה!):
 ###CORRECTED###
-[הטקסט המתוקן המלא - בלי גרשיים! - מוכן להעתקה ושליחה ללקוח - בעברית, ב${G.label}]
+[הטקסט המתוקן - בלי גרשיים - ב${G.label}]
 ###TIP###
-[2-3 משפטים קצרים, כמו קולגה מנוסה שאומר לנציג מה עוד כדאי להוסיף/לשפר. לא רובוטי - דבר טבעית. בגוף ראשון ("הייתי מוסיפה...", "שים לב ש...").]
+[2-3 משפטים קצרים כמו קולגה מנוסה]
 ###END###
 
-====== ✍️ הטקסט לתיקון ======
-
+✍️ הטקסט לתיקון:
 ${text}
 
-זכור: ${G.label} בפנייה ללקוח. תקן את הטקסט, אל תכתוב מחדש. לא להוסיף משפטי סיום שלא היו במקור. הטקסט המתוקן חייב להיות בלי גרשיים מסביב!`;
+זכור: ${G.label}. תקן, אל תכתוב מחדש. לא להוסיף סיומים. בלי גרשיים.`;
 
   return callAI([
-    { role: 'system', content: `אתה עוזר שירות לקוחות אנושי וחם של אופטיסטור. אתה כותב בעברית רהוטה וטבעית כמו שמדברים באמת - לא רובוטית ולא רשמית מדי. הכי חשוב: המגדר של הלקוח/ה בפנייה חייב להיות נכון תמיד. הלקוח הנוכחי הוא ${G.label}, לכן כל פנייה ללקוח ב${G.label} בלבד. אתה תמיד מחזיר בפורמט ###CORRECTED### ... ###TIP### ... ###END###` },
-    { role: 'user', content: prompt }
+    { role: 'system', content: staticSystem },
+    { role: 'user', content: userPrompt }
   ], 0.4, 3000);
 }
 
