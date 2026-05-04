@@ -1198,7 +1198,10 @@ const USER_KEY = 'spell-checker-user';
 let currentUser = null;
 
 // Google Apps Script URL for logging (will be set up)
-let APPS_SCRIPT_URL = localStorage.getItem('spell-checker-log-url') || '';
+// Default shared logs endpoint - all users will use this unless they override in settings.
+// This makes the dashboard show shared logs from all team members automatically.
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4noEcZIXN7ShZyig1Dtgdrkacu-ka31DHvuyO-y9MRi_BHQUanLjow0hJEDG6RN-G/exec';
+let APPS_SCRIPT_URL = localStorage.getItem('spell-checker-log-url') || DEFAULT_APPS_SCRIPT_URL;
 
 function doLogin() {
   const userId = document.getElementById('loginUser').value;
@@ -1614,9 +1617,11 @@ function saveAppsScriptUrl() {
   const url = document.getElementById('appsScriptUrlInput').value.trim();
   const statusEl = document.getElementById('appsScriptStatus');
   if (!url) {
-    APPS_SCRIPT_URL = '';
-    localStorage.setItem('spell-checker-log-url', '');
-    statusEl.innerHTML = '<span style="color:#f59e0b;">⚠️ הכתובת נמחקה - לוגים יישמרו רק מקומית</span>';
+    // Reset to default shared URL instead of disabling
+    localStorage.removeItem('spell-checker-log-url');
+    APPS_SCRIPT_URL = DEFAULT_APPS_SCRIPT_URL;
+    document.getElementById('appsScriptUrlInput').value = DEFAULT_APPS_SCRIPT_URL;
+    statusEl.innerHTML = '<span style="color:#10b981;">✅ חזרנו לכתובת המשותפת המוגדרת מראש</span>';
     return;
   }
   statusEl.innerHTML = '<span style="color:var(--text-muted);">⏳ בודק חיבור...</span>';
