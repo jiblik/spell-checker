@@ -1252,20 +1252,9 @@ function applyLogin() {
   const dashboardSection = document.getElementById('dashboardSection');
   const tabButtons = document.getElementById('tabButtons');
 
-  // Auto-select gender if user has one set
-  if (currentUser.gender && canTool) {
-    setTimeout(() => {
-      const genderBtns = document.querySelectorAll('.gender-buttons')[2]; // 3rd group = gender
-      if (genderBtns) {
-        const btns = genderBtns.querySelectorAll('.gender-btn');
-        const genderMap = { male: 0, female: 1, neutral: 2 };
-        const idx = genderMap[currentUser.gender];
-        if (idx !== undefined && btns[idx]) {
-          btns[idx].click();
-        }
-      }
-    }, 500);
-  }
+  // NOTE: currentUser.gender is the AGENT's gender (the writer's own gender),
+  // used to fix self-references like "אני יכולה" / "אני יכול".
+  // It is NOT the customer's gender, which is selected manually per message.
 
   if (canTool && canView) {
     // Both: show tabs
@@ -2176,7 +2165,7 @@ async function callGemini(apiKey, messages, temperature = 0.1, maxTokens = 2048,
   }
 }
 
-async function callGroq(text, gender, platform, customerContext) {
+async function callGroq(text, gender, platform, customerContext, agentGender = null) {
   if (!getApiKey()) {
     showSetup();
     throw new Error('No API key');
@@ -2268,7 +2257,20 @@ ${KNOWLEDGE_BASE}
 ❌ אסור: ${G.avoidVerbs}
 דוגמה: "${G.example}"
 
-⚠️ בדוק כל מילה שמכוונת ללקוח - חייבת להיות ב${G.label}. כשהנציג/ה כותב/ת על עצמו - אל תשנה.
+⚠️ בדוק כל מילה שמכוונת ללקוח - חייבת להיות ב${G.label}.
+${agentGender === 'female' ? `
+====== 👩 הנציגה הכותבת היא אישה (חובה!) ======
+כל התייחסות עצמית של הכותבת חייבת להיות בלשון נקבה:
+✅ "אני יכולה", "בדקתי", "שלחתי לך", "אשמח לעזור", "אני כאן בשבילך"
+❌ "אני יכול", "בדקת" (כשמדובר עליה), "שלחתי לך" בזכר
+תקן כל מקום שהכותבת מתייחסת לעצמה בזכר!
+` : agentGender === 'male' ? `
+====== 👨 הנציג הכותב הוא גבר (חובה!) ======
+כל התייחסות עצמית של הכותב חייבת להיות בלשון זכר:
+✅ "אני יכול", "בדקתי", "שלחתי לך", "אשמח לעזור"
+❌ "אני יכולה" כשמדובר עליו
+תקן כל מקום שהכותב מתייחס לעצמו בנקבה!
+` : '⚠️ כשהנציג/ה כותב/ת על עצמו - שמור על המגדר שכבר נכתב.'}
 ${contextBlock}
 ${modelMentioned ? '🌟 הלקוח/ה הזכיר/ה דגם ספציפי - חובה להחמיא לבחירה!\n' : ''}
 📱 טון: ${platformInstruction}
@@ -2387,9 +2389,10 @@ async function correctText() {
 
   try {
     const customerContext = document.getElementById('contextText').value.trim();
+    const agentGender = currentUser?.gender || null;
 
     // Run correction (single API call returns both corrected text + Claude's tip)
-    const rawResponse = await callGroq(text, selectedGender, selectedPlatform, customerContext);
+    const rawResponse = await callGroq(text, selectedGender, selectedPlatform, customerContext, agentGender);
     const { corrected, tip } = parseAIResponse(rawResponse);
 
     document.getElementById('resultText').textContent = corrected;
