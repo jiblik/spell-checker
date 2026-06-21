@@ -1127,6 +1127,21 @@
         </div>
 
         <div class="card card-blue">
+          <div class="card-label">🌐 שפת התשובה ללקוח</div>
+          <div class="gender-buttons">
+            <button class="gender-btn active" data-lang="he" onclick="selectLanguage('he', this)">
+              <span class="emoji">🇮🇱</span> עברית
+            </button>
+            <button class="gender-btn" data-lang="ru" onclick="selectLanguage('ru', this)">
+              <span class="emoji">🇷🇺</span> רוסית
+            </button>
+            <button class="gender-btn" data-lang="en" onclick="selectLanguage('en', this)">
+              <span class="emoji">🇬🇧</span> אנגלית
+            </button>
+          </div>
+        </div>
+
+        <div class="card card-blue">
           <div class="card-label">📱 פלטפורמה</div>
           <div class="gender-buttons" style="grid-template-columns: 1fr 1fr;">
             <button class="gender-btn" onclick="selectPlatform('instagram', this)">
@@ -2165,7 +2180,7 @@ async function callGemini(apiKey, messages, temperature = 0.1, maxTokens = 2048,
   }
 }
 
-async function callGroq(text, gender, platform, customerContext, agentGender = null) {
+async function callGroq(text, gender, platform, customerContext, agentGender = null, language = 'he') {
   if (!getApiKey()) {
     showSetup();
     throw new Error('No API key');
@@ -2249,8 +2264,20 @@ ${KNOWLEDGE_BASE}
 • כל קישור בשורה נפרדת עם תווית בעברית בשורה מעליו
 • אסור לערבב עברית ואנגלית באותה שורה`;
 
+  // ============ LANGUAGE RULES ============
+  const LANG_RULES = {
+    he: { label: 'עברית', instruction: 'התשובה הסופית תהיה בעברית רהוטה וטבעית.' },
+    ru: { label: 'רוסית (Русский)', instruction: 'תרגם את התשובה הסופית לרוסית טבעית ושוטפת - לא תרגום מילולי. שמור על הטון החם והמשפחתי גם בשפה הרוסית. כל הטקסט המתוקן חייב להיות ברוסית בלבד, בלי מילים בעברית. דוגמה לפתיח: "Привет [имя]! ..." או "Доброе утро! ...". פנייה רשמית: на "ты". אם יש שמות מותגים באנגלית - השאר אותם באנגלית.' },
+    en: { label: 'אנגלית (English)', instruction: 'Translate the final response to natural fluent English - not a literal translation. Preserve the warm, family-like tone in English. The corrected text must be entirely in English, with no Hebrew words. Example opening: "Hi [name]! ..." or "Good morning! ...". Use friendly informal English. Keep brand names as-is.' },
+  };
+  const L = LANG_RULES[language] || LANG_RULES.he;
+
   // DYNAMIC user prompt - changes per request (small, not cached)
-  const userPrompt = `====== 🚨 מגדר הלקוח/ה (חובה!) ======
+  const userPrompt = `====== 🌐 שפת התשובה (חובה מוחלטת!) ======
+${L.instruction}
+${language !== 'he' ? '⚠️ הטקסט המקורי בעברית - אבל התשובה המתוקנת חייבת להיות ב' + L.label + ' בלבד! זה לא רק תיקון, זה גם תרגום!' : ''}
+
+====== 🚨 מגדר הלקוח/ה (חובה!) ======
 
 הלקוח הנוכחי: ${G.label}
 ✅ משתמש ב: ${G.you}, ${G.verbs}
@@ -2277,15 +2304,15 @@ ${modelMentioned ? '🌟 הלקוח/ה הזכיר/ה דגם ספציפי - חו�
 
 📤 פורמט (חובה!):
 ###CORRECTED###
-[הטקסט המתוקן - בלי גרשיים - ב${G.label}]
+[הטקסט המתוקן ב${L.label} - בלי גרשיים - ב${G.label}]
 ###TIP###
-[2-3 משפטים קצרים כמו קולגה מנוסה]
+[2-3 משפטים קצרים כמו קולגה מנוסה - בעברית תמיד, גם אם התשובה ללקוח בשפה אחרת]
 ###END###
 
 ✍️ הטקסט לתיקון:
 ${text}
 
-זכור: ${G.label}. תקן, אל תכתוב מחדש. לא להוסיף סיומים. בלי גרשיים.`;
+זכור: ${G.label}, התשובה ב${L.label}. תקן, אל תכתוב מחדש. לא להוסיף סיומים. בלי גרשיים.`;
 
   return callAI([
     { role: 'system', content: staticSystem },
@@ -2352,6 +2379,7 @@ ${SERVICE_GUIDELINES}
 
 let selectedGender = null;
 let selectedPlatform = null;
+let selectedLanguage = 'he'; // default Hebrew
 
 function selectPlatform(platform, btn) {
   selectedPlatform = platform;
@@ -2366,6 +2394,12 @@ function selectGender(gender, btn) {
   btn.closest('.gender-buttons').querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   updateBtn();
+}
+
+function selectLanguage(lang, btn) {
+  selectedLanguage = lang;
+  btn.closest('.gender-buttons').querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
 function updateBtn() {
@@ -2392,7 +2426,7 @@ async function correctText() {
     const agentGender = currentUser?.gender || null;
 
     // Run correction (single API call returns both corrected text + Claude's tip)
-    const rawResponse = await callGroq(text, selectedGender, selectedPlatform, customerContext, agentGender);
+    const rawResponse = await callGroq(text, selectedGender, selectedPlatform, customerContext, agentGender, selectedLanguage);
     const { corrected, tip } = parseAIResponse(rawResponse);
 
     document.getElementById('resultText').textContent = corrected;
