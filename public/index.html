@@ -1101,7 +1101,10 @@
                 <input type="text" class="ask-input utm-field" id="utmCampaign" placeholder="summer_sale / new_collection" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
                 <label style="text-align: right; color: var(--text-muted);">Content</label>
                 <input type="text" class="ask-input utm-field" id="utmContent" placeholder="(אופציונלי) banner / link / cta" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
+                <label style="text-align: right; color: var(--text-muted);">נציג/ה</label>
+                <div id="utmAgentTag" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-weight: 600;">—</div>
               </div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">✨ השם שלך מתווסף אוטומטית לכל קישור (utm_content) כדי לדעת מי שיתף</div>
             </div>
 
             <button class="action-btn" style="margin-top: 14px; width: 100%; text-align: center;" onclick="buildUTMFromFields()">🔗 בנה קישור</button>
@@ -1200,13 +1203,13 @@
 // ==================== USER SYSTEM ====================
 
 const USERS = {
-  igor:  { name: 'איגור', pass: 'Igor2525', role: 'admin+agent', gender: null },
-  dudi:  { name: 'דודי', pass: 'Dudi2122', role: 'admin+agent', gender: null },
-  gil:   { name: 'גיל', pass: 'Gil2221', role: 'admin+agent', gender: null },
-  ori:   { name: 'אורי', pass: 'Ori2323', role: 'agent+viewer', gender: null },
-  roi:   { name: 'רועי', pass: 'Roi7788', role: 'agent+viewer', gender: 'male' },
-  tania: { name: 'טניה', pass: 'Tanya2423', role: 'agent', gender: 'female' },
-  rivka: { name: 'רבקה', pass: 'Rebecca1313', role: 'agent', gender: 'female' },
+  igor:  { name: 'איגור', pass: 'Igor2525', role: 'admin+agent', gender: null, slug: 'igor' },
+  dudi:  { name: 'דודי', pass: 'Dudi2122', role: 'admin+agent', gender: null, slug: 'dudi' },
+  gil:   { name: 'גיל', pass: 'Gil2221', role: 'admin+agent', gender: null, slug: 'gil' },
+  ori:   { name: 'אורי', pass: 'Ori2323', role: 'agent+viewer', gender: null, slug: 'ori' },
+  roi:   { name: 'רועי', pass: 'Roi7788', role: 'agent+viewer', gender: 'male', slug: 'roi' },
+  tania: { name: 'טניה', pass: 'Tanya2423', role: 'agent', gender: 'female', slug: 'tania' },
+  rivka: { name: 'רבקה', pass: 'Rebecca1313', role: 'agent', gender: 'female', slug: 'rivka' },
 };
 
 const USER_KEY = 'spell-checker-user';
@@ -1262,6 +1265,10 @@ function applyLogin() {
   const roleLabels = { admin: 'מנהל', 'admin+agent': 'מנהל + נציג', viewer: 'בקרה', agent: 'נציג/ה', 'agent+viewer': 'נציג + בקרה' };
   document.getElementById('userBadgeName').textContent = `${currentUser.name} (${roleLabels[currentUser.role] || ''})`;
   badge.style.display = 'flex';
+
+  // Show the agent's UTM name tag
+  const agentTag = document.getElementById('utmAgentTag');
+  if (agentTag) agentTag.textContent = currentUser.slug || '—';
 
   const toolSection = document.getElementById('toolSection');
   const dashboardSection = document.getElementById('dashboardSection');
@@ -2508,11 +2515,18 @@ function buildUTMFromFields() {
 
   if (!source) { document.getElementById('utmSource').focus(); return; }
 
+  // Always embed the logged-in agent's name in utm_content for tracking.
+  const agentSlug = currentUser?.slug || '';
+  let finalContent = content;
+  if (agentSlug) {
+    finalContent = content ? `${agentSlug}_${content}` : agentSlug;
+  }
+
   const sep = link.includes('?') ? '&' : '?';
   let params = `utm_source=${encodeURIComponent(source)}`;
   if (medium) params += `&utm_medium=${encodeURIComponent(medium)}`;
   if (campaign) params += `&utm_campaign=${encodeURIComponent(campaign)}`;
-  if (content) params += `&utm_content=${encodeURIComponent(content)}`;
+  if (finalContent) params += `&utm_content=${encodeURIComponent(finalContent)}`;
 
   const fullLink = link + sep + params;
   document.getElementById('utmLink').textContent = fullLink;
