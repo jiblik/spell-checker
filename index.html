@@ -872,6 +872,9 @@
         <option value="roi">Roi</option>
         <option value="rebecca">Rebecca</option>
         <option value="tanya">Tanya</option>
+        <option value="dudi">דודי</option>
+        <option value="gil">גיל</option>
+        <option value="ori">אורי</option>
       </select>
       <input type="password" id="loginPass" placeholder="סיסמה...">
       <div class="login-error" id="loginError">סיסמה שגויה ❌</div>
@@ -1018,6 +1021,9 @@
             <option value="Roi">Roi</option>
             <option value="Rebecca">Rebecca</option>
             <option value="Tanya">Tanya</option>
+            <option value="דודי">דודי</option>
+            <option value="גיל">גיל</option>
+            <option value="אורי">אורי</option>
           </select>
           <select id="filterPlatform" onchange="filterLogs()">
             <option value="">כל הפלטפורמות</option>
@@ -1095,10 +1101,10 @@
                 <input type="text" class="ask-input utm-field" id="utmCampaign" placeholder="summer_sale / new_collection" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
                 <label style="text-align: right; color: var(--text-muted);">Content</label>
                 <input type="text" class="ask-input utm-field" id="utmContent" placeholder="(אופציונלי) banner / link / cta" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px;">
-                <label style="text-align: right; color: var(--text-muted);">נציג/ה</label>
+                <label id="utmAgentLabel" style="text-align: right; color: var(--text-muted);">נציג/ה</label>
                 <div id="utmAgentTag" dir="ltr" style="text-align: left; padding: 8px 12px; font-size: 13px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-weight: 600;">—</div>
               </div>
-              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">✨ השם שלך מתווסף אוטומטית לכל קישור (utm_content) כדי לדעת מי שיתף</div>
+              <div id="utmAgentNote" style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">✨ השם שלך מתווסף אוטומטית לכל קישור (utm_content) כדי לדעת מי שיתף</div>
             </div>
 
             <button class="action-btn" style="margin-top: 14px; width: 100%; text-align: center;" onclick="buildUTMFromFields()">🔗 בנה קישור</button>
@@ -1201,6 +1207,9 @@ const USERS = {
   roi:     { name: 'Roi', pass: 'Roi7788', role: 'agent+viewer', gender: 'male', slug: 'roi' },
   rebecca: { name: 'Rebecca', pass: 'Rebecca1313', role: 'agent', gender: 'female', slug: 'rebecca' },
   tanya:   { name: 'Tanya', pass: 'Tanya2423', role: 'agent', gender: 'female', slug: 'tanya' },
+  dudi:    { name: 'דודי', pass: 'Dudi2122', role: 'admin+agent', gender: null, slug: null },
+  gil:     { name: 'גיל', pass: 'Gil2221', role: 'admin+agent', gender: null, slug: null },
+  ori:     { name: 'אורי', pass: 'Ori2323', role: 'agent+viewer', gender: null, slug: null },
 };
 
 const USER_KEY = 'spell-checker-user';
@@ -1257,9 +1266,14 @@ function applyLogin() {
   document.getElementById('userBadgeName').textContent = `${currentUser.name} (${roleLabels[currentUser.role] || ''})`;
   badge.style.display = 'flex';
 
-  // Show the agent's UTM name tag
+  // Show the agent's UTM name tag - only for users who have a slug
   const agentTag = document.getElementById('utmAgentTag');
-  if (agentTag) agentTag.textContent = currentUser.slug || '—';
+  const agentLabel = document.getElementById('utmAgentLabel');
+  const agentNote = document.getElementById('utmAgentNote');
+  const hasSlug = !!currentUser.slug;
+  if (agentTag) { agentTag.textContent = currentUser.slug || '—'; agentTag.style.display = hasSlug ? 'block' : 'none'; }
+  if (agentLabel) agentLabel.style.display = hasSlug ? 'block' : 'none';
+  if (agentNote) agentNote.style.display = hasSlug ? 'block' : 'none';
 
   const toolSection = document.getElementById('toolSection');
   const dashboardSection = document.getElementById('dashboardSection');
