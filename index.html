@@ -1307,8 +1307,12 @@ function switchTab(tab, btn) {
 const savedUser = localStorage.getItem(USER_KEY);
 if (savedUser) {
   try {
-    currentUser = JSON.parse(savedUser);
-    if (USERS[currentUser.id]) {
+    const saved = JSON.parse(savedUser);
+    if (saved.id && USERS[saved.id]) {
+      // Always re-merge with the current USERS definition so new fields
+      // (like slug) are picked up even for sessions saved before they existed.
+      currentUser = { id: saved.id, ...USERS[saved.id] };
+      localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
       applyLogin();
     } else {
       doLogout();
