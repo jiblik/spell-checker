@@ -868,13 +868,10 @@
       <div class="login-sub">בחרו את השם שלכם והכניסו סיסמה</div>
       <select id="loginUser">
         <option value="">בחרו משתמש...</option>
-        <option value="igor">איגור</option>
-        <option value="dudi">דודי</option>
-        <option value="gil">גיל</option>
-        <option value="ori">אורי</option>
-        <option value="roi">רועי</option>
-        <option value="tania">טניה</option>
-        <option value="rivka">רבקה</option>
+        <option value="igor">Igor</option>
+        <option value="roi">Roi</option>
+        <option value="rebecca">Rebecca</option>
+        <option value="tanya">Tanya</option>
       </select>
       <input type="password" id="loginPass" placeholder="סיסמה...">
       <div class="login-error" id="loginError">סיסמה שגויה ❌</div>
@@ -1017,13 +1014,10 @@
         <div class="dashboard-filters">
           <select id="filterAgent" onchange="filterLogs()">
             <option value="">כל הנציגים</option>
-            <option value="איגור">איגור</option>
-            <option value="דודי">דודי</option>
-            <option value="גיל">גיל</option>
-            <option value="אורי">אורי</option>
-            <option value="רועי">רועי</option>
-            <option value="טניה">טניה</option>
-            <option value="רבקה">רבקה</option>
+            <option value="Igor">Igor</option>
+            <option value="Roi">Roi</option>
+            <option value="Rebecca">Rebecca</option>
+            <option value="Tanya">Tanya</option>
           </select>
           <select id="filterPlatform" onchange="filterLogs()">
             <option value="">כל הפלטפורמות</option>
@@ -1203,13 +1197,10 @@
 // ==================== USER SYSTEM ====================
 
 const USERS = {
-  igor:  { name: 'איגור', pass: 'Igor2525', role: 'admin+agent', gender: null, slug: 'igor' },
-  dudi:  { name: 'דודי', pass: 'Dudi2122', role: 'admin+agent', gender: null, slug: 'dudi' },
-  gil:   { name: 'גיל', pass: 'Gil2221', role: 'admin+agent', gender: null, slug: 'gil' },
-  ori:   { name: 'אורי', pass: 'Ori2323', role: 'agent+viewer', gender: null, slug: 'ori' },
-  roi:   { name: 'רועי', pass: 'Roi7788', role: 'agent+viewer', gender: 'male', slug: 'roi' },
-  tania: { name: 'טניה', pass: 'Tanya2423', role: 'agent', gender: 'female', slug: 'tania' },
-  rivka: { name: 'רבקה', pass: 'Rebecca1313', role: 'agent', gender: 'female', slug: 'rivka' },
+  igor:    { name: 'Igor', pass: 'Igor2525', role: 'admin+agent', gender: null, slug: 'igor' },
+  roi:     { name: 'Roi', pass: 'Roi7788', role: 'agent+viewer', gender: 'male', slug: 'roi' },
+  rebecca: { name: 'Rebecca', pass: 'Rebecca1313', role: 'agent', gender: 'female', slug: 'rebecca' },
+  tanya:   { name: 'Tanya', pass: 'Tanya2423', role: 'agent', gender: 'female', slug: 'tanya' },
 };
 
 const USER_KEY = 'spell-checker-user';
